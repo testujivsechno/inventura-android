@@ -1,0 +1,38 @@
+name: Deploy Inventura PWA
+
+on:
+  push:
+    branches: [ main ]
+
+# Nastavení oprávnění pro GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Zajištění, že se nebude zbytečně křížit více souběžných deployů
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stáhnutí kódu (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Nastavení GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Zabalení souborů aplikace
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.' # Zkopíruje všechny soubory z kořene repozitáře (HTML, JS, manifest, sw.js)
+
+      - name: Nasazení na GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
