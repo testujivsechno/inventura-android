@@ -176,6 +176,7 @@ const saveC=()=>{try{localStorage.setItem(CK,JSON.stringify(C))}catch(e){}};
 const mqDark=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):null;
 const sysDark=()=>!!(mqDark&&mqDark.matches);
 function applyTheme(){const de=document.documentElement,dark=C.theme==='dark'||(C.theme!=='light'&&sysDark());de.setAttribute('data-theme',dark?'dark':'light');const m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',dark?'#0E1420':'#14213D')}
+function applyCfg(){const de=document.documentElement,st=de.style;applyTheme();st.setProperty('--fs',C.fs);st.setProperty('--bs',C.bs);st.setProperty('--cs',C.cs);st.setProperty('--camh',({s:'240px',m:'340px',l:'min(58vh,480px)'})[C.cam]||'340px')}
 applyCfg();
 try{mqDark&&(mqDark.addEventListener?mqDark.addEventListener('change',()=>{applyTheme();if(v.tab==='set')render()}):mqDark.addListener&&mqDark.addListener(()=>applyTheme()))}catch(e){}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')applyTheme()});
