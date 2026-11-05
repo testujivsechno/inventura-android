@@ -197,6 +197,7 @@ public class MainActivity extends Activity {
         try {
             CameraManager manager = (CameraManager) getSystemService(CAMERA_SERVICE);
             root.put("apiLevel", Build.VERSION.SDK_INT);
+            root.put("androidVersion", Build.VERSION.RELEASE);
             root.put("manufacturer", Build.MANUFACTURER);
             root.put("model", Build.MODEL);
             for (String id : manager.getCameraIdList()) {
