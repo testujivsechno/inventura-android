@@ -703,7 +703,13 @@ async function testCamerasRun(){
    };
    const side=group(a)-group(b);
    if(side)return side;
-   return cameraResolutionPixels(b)-cameraResolutionPixels(a);
+   // Uvnitř skupiny zachovej pojmenované pořadí: Zadní kamera 1, 2…
+   // a poté Přední kamera 1, 2…; rozlišení pořadí neovlivňuje.
+   const number=d=>{
+    const m=String(d.label||'').match(/kamera\s+(\d+)/i);
+    return m?Number(m[1]):0;
+   };
+   return number(a)-number(b);
   });
   if(C.deviceId&&!cameraOptions.some(d=>d.id===C.deviceId)){const m=C.deviceLabel&&cameraOptions.find(d=>d.lab===C.deviceLabel);if(m){C.deviceId=m.id;saveC()}}
   const webCount=cameraOptions.length;
