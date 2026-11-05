@@ -3,6 +3,7 @@ package cz.testujivsechno.inventura;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
@@ -15,6 +16,7 @@ import android.util.Base64;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
+import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
@@ -31,8 +33,10 @@ import java.util.Set;
 
 public class MainActivity extends Activity {
     private static final int REQUEST_CAMERA = 701;
+    private static final int REQUEST_FILE_CHOOSER = 702;
     private WebView webView;
     private PermissionRequest pendingWebPermission;
+    private ValueCallback<Uri[]> pendingFileChooser;
     private WebViewAssetLoader assetLoader;
 
     @Override public void onCreate(Bundle state) {
@@ -56,6 +60,24 @@ public class MainActivity extends Activity {
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
+                if (pendingFileChooser != null) pendingFileChooser.onReceiveValue(null);
+                pendingFileChooser = callback;
+                try {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("*/*");
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivityForResult(intent, REQUEST_FILE_CHOOSER);
+                    return true;
+                } catch (Exception e) {
+                    pendingFileChooser = null;
+                    callback.onReceiveValue(null);
+                    Toast.makeText(MainActivity.this, "Výběr souboru nelze otevřít", Toast.LENGTH_LONG).show();
+                    return false;
+                }
+            }
+
             @Override public void onPermissionRequest(PermissionRequest request) {
                 runOnUiThread(() -> {
                     boolean asksForVideo = false;
@@ -85,6 +107,19 @@ public class MainActivity extends Activity {
                 else pendingWebPermission.deny();
                 pendingWebPermission = null;
             } else loadApp();
+        }
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_FILE_CHOOSER) {
+            if (pendingFileChooser == null) return;
+            Uri[] result = null;
+            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                result = new Uri[]{data.getData()};
+            }
+            pendingFileChooser.onReceiveValue(result);
+            pendingFileChooser = null;
         }
     }
 
