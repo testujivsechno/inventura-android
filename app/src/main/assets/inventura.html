@@ -689,7 +689,7 @@ async function testCamerasRun(){
    else if(focusModes.length)features.push('bez průběžného ostření (podporuje '+focusModes.join('/')+')');
    if(hasTorch)features.push('svítilnou');
    const description=side?side+' kamera '+sideIndex+(features.length?' s '+features.join(' a '):''):'Kamera '+(i+1);
-   cameraOptions.push({id:d.deviceId,label,lab:d.label||'',info:'',facing,maxRes,description});
+   cameraOptions.push({id:d.deviceId,label,lab:d.label||'',info:'',facing,maxRes,description,focusModes,hasTorch});
   }
   if(C.deviceId&&!cameraOptions.some(d=>d.id===C.deviceId)){const m=C.deviceLabel&&cameraOptions.find(d=>d.lab===C.deviceLabel);if(m){C.deviceId=m.id;saveC()}}
   const webCount=cameraOptions.length;
@@ -708,6 +708,17 @@ async function testCamerasRun(){
    ? 'Kontrola kamer dokončena. '+(model?'Telefon '+model:'Zařízení')+' nabízí '+cameraCountText+' pro skenování.'
    : 'Kontrola kamer dokončena. Nebyly nalezeny žádné kamery dostupné pro skenování.';
  }catch(e){cameraTestInfo='Seznam kamer se nepodařilo načíst: '+(e.message||e)}rr();
+}
+function bestAutoCamera(){
+ const score=d=>{
+  let n=d.facing==='environment'?100:0;
+  if((d.focusModes||[]).includes('continuous'))n+=40;
+  if(d.hasTorch)n+=20;
+  const m=String(d.maxRes||'').match(/(\d+)\s*×\s*(\d+)/);
+  if(m)n+=Math.min(20,(Number(m[1])*Number(m[2]))/1000000);
+  return n;
+ };
+ return cameraOptions.filter(d=>d.facing==='environment').sort((a,b)=>score(b)-score(a))[0]||null;
 }
 function setVol(x){C.vol=+x;const e=$('sv_vol');if(e)e.textContent=Math.round(x*100)+' %';saveC()}
 // Ukotvení hlavičky: když je vypnuté, hlavička zmizí při posunu dolů a vrátí se při posunu nahoru
@@ -1060,7 +1071,14 @@ async function openCam(){
  const base={width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30,max:30}};
  const get=c=>navigator.mediaDevices.getUserMedia({video:Object.assign({},base,c),audio:false});
  const auto=()=>get({facingMode:{ideal:'environment'}});
- if(!C.deviceId)return {s:await auto()};
+ if(!C.deviceId){
+  // Automatika Inventury vybírá zadní kameru podle ostření, svítilny a rozlišení,
+  // místo aby ponechala volbu pouze na Androidu/WebView.
+  if(!cameraOptions.length){try{await testCamerasRun()}catch(e){}}
+  const preferred=bestAutoCamera();
+  if(preferred){try{return {s:await get({deviceId:{exact:preferred.id}})}}catch(e){}}
+  return {s:await auto()};
+ }
  try{return {s:await get({deviceId:{exact:C.deviceId}})}}catch(e){}
  // Při neplatném ID nejprve zkusíme najít kameru podle názvu bez otevření dalšího video streamu.
  try{
