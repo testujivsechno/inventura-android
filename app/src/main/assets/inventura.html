@@ -670,7 +670,7 @@ async function testCamerasRun(){
   if(C.deviceId&&!cameraOptions.some(d=>d.id===C.deviceId)){const m=C.deviceLabel&&cameraOptions.find(d=>d.lab===C.deviceLabel);if(m){C.deviceId=m.id;saveC()}}
   const webCount=cameraOptions.length;
   let report=webCount
-   ? 'V aplikaci lze vybrat '+webCount+' '+(webCount===1?'kameru':webCount<5?'kamery':'kamer')+'.'
+   ? 'Aplikace nabízí '+webCount+' kamer pro výběr.'
    : 'Aplikace zatím žádnou kameru nenašla.';
   report+=' Seznam je určen pro výběr kamery při skenování.';
   try{
@@ -692,9 +692,9 @@ async function testCamerasRun(){
      const model=[ni.manufacturer,ni.model].filter(Boolean).join(' ');
      report+=' Telefon: '+(model||'model se nepodařilo zjistit')+'.';
      if(ni.androidVersion)report+=' Android '+ni.androidVersion+'.';
-     report+=' Systém telefonu rozpoznal '+total+' '+(total===1?'kamerové zařízení':total<5?'kamerová zařízení':'kamerových zařízení')+(sides.length?' ('+sides.join(', ')+')':'')+'.';
+     report+=' Systém telefonu rozpoznal celkem '+total+' kamerových zařízení'+(sides.length?' ('+sides.join(', ')+')':'')+'.';
      if(physical)report+=' Některá zařízení obsahují ještě '+physical+' dalších vnitřních snímačů. Ty se obvykle nedají vybrat samostatně, proto se nezapočítávají jako samostatné kamery.';
-     if(flash)report+=' Blesk má '+flash+' '+(flash===1?'kamera':'kamer')+'.';
+     if(flash)report+=' Blesk je dostupný u '+flash+' zařízení.';
      report+=' Počet v seznamu aplikace a počet zařízení v Androidu se může lišit; pro skenování vybírej z nabídky Typ kamery.';
     }else report+=' Podrobnější údaje o kamerách telefon neposkytl.';
    }else report+=' Podrobné informace o telefonu nejsou dostupné.';
