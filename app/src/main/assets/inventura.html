@@ -670,36 +670,18 @@ async function testCamerasRun(){
   if(C.deviceId&&!cameraOptions.some(d=>d.id===C.deviceId)){const m=C.deviceLabel&&cameraOptions.find(d=>d.lab===C.deviceLabel);if(m){C.deviceId=m.id;saveC()}}
   const webCount=cameraOptions.length;
   let report=webCount
-   ? 'Aplikace nabízí '+webCount+' kamer pro výběr.'
-   : 'Aplikace zatím žádnou kameru nenašla.';
-  report+=' Seznam je určen pro výběr kamery při skenování.';
+   ? 'Nalezeno kamer: '+webCount+'.'
+   : 'Nebyly nalezeny žádné dostupné kamery.';
   try{
    if(window.Android&&typeof Android.getNativeCameraInfo==='function'){
     const ni=JSON.parse(Android.getNativeCameraInfo());
-    if(ni&&Array.isArray(ni.cameras)&&ni.ok!==false){
-     const count={back:0,front:0,external:0,unknown:0};let physical=0,flash=0;
-     ni.cameras.forEach(c=>{
-      count[c.facing]!==undefined?count[c.facing]++:count.unknown++;
-      physical+=(c.physicalCameraIds||[]).length;
-      if(c.flashAvailable)flash++;
-     });
-     const total=ni.cameras.length;
-     const sides=[];
-     if(count.back)sides.push('zadní: '+count.back);
-     if(count.front)sides.push('přední: '+count.front);
-     if(count.external)sides.push('externí: '+count.external);
-     if(count.unknown)sides.push('jiné/nezařazené: '+count.unknown);
+    if(ni&&ni.ok!==false){
      const model=[ni.manufacturer,ni.model].filter(Boolean).join(' ');
-     report+=' Telefon: '+(model||'model se nepodařilo zjistit')+'.';
+     if(model)report+=' Telefon: '+model+'.';
      if(ni.androidVersion)report+=' Android '+ni.androidVersion+'.';
-     report+=' Systém telefonu rozpoznal celkem '+total+' kamerových zařízení'+(sides.length?' ('+sides.join(', ')+')':'')+'.';
-     if(physical)report+=' Některá zařízení obsahují ještě '+physical+' dalších vnitřních snímačů. Ty se obvykle nedají vybrat samostatně, proto se nezapočítávají jako samostatné kamery.';
-     if(flash)report+=' Blesk je dostupný u '+flash+' zařízení.';
-     report+=' Počet v seznamu aplikace a počet zařízení v Androidu se může lišit; pro skenování vybírej z nabídky Typ kamery.';
-    }else report+=' Podrobnější údaje o kamerách telefon neposkytl.';
-   }else report+=' Podrobné informace o telefonu nejsou dostupné.';
-  }catch(nativeError){report+=' Podrobnější informace o kamerách se nepodařilo načíst.'}
-  report+=' Kontrola ověřuje dostupnost kamer, ne kvalitu obrazu ani přesnost čtení. Nejlepší kameru ověř naskenováním skutečného štítku.';
+    }
+   }
+  }catch(nativeError){}
   cameraTestInfo=report;
  }catch(e){cameraTestInfo='Seznam kamer se nepodařilo načíst: '+(e.message||e)}rr();
 }
