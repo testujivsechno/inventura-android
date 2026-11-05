@@ -652,7 +652,7 @@ function setCam(x){C.cam=x;saveC();applyCfg()}
 function cameraDetailText(id,list){
  if(!id)return 'Automaticky: výběr kamery ponecháš na telefonu.';
  const d=(list||cameraOptions).find(x=>x.id===id);if(!d)return 'Vybraná kamera není aktuálně v seznamu dostupných kamer.';
- return d.description+(d.maxRes?' Maximální rozlišení: '+d.maxRes+' px.':' Maximální rozlišení se nepodařilo zjistit.');
+ return (d.description||d.label||'Vybraná kamera')+(d.maxRes?' Maximální rozlišení: '+d.maxRes+' px.':' Maximální rozlišení se nepodařilo zjistit.');
 }
 function setCameraDevice(x){
  const o=cameraOptions.find(d=>d.id===x);C.deviceId=x||'';C.deviceLabel=x&&o?o.lab||'':'';saveC();
@@ -688,7 +688,7 @@ async function testCamerasRun(){
    if(focusModes.includes('continuous'))features.push('průběžným ostřením');
    else if(focusModes.length)features.push('bez průběžného ostření (podporuje '+focusModes.join('/')+')');
    if(hasTorch)features.push('svítilnou');
-   const description=side?side+' kamera '+sideIndex+(features.length+' '+features.join(' a ')?' s '+features.join(' a '):''):'Kamera '+(i+1);
+   const description=side?side+' kamera '+sideIndex+(features.length?' s '+features.join(' a '):''):'Kamera '+(i+1);
    cameraOptions.push({id:d.deviceId,label,lab:d.label||'',info:'',facing,maxRes,description});
   }
   if(C.deviceId&&!cameraOptions.some(d=>d.id===C.deviceId)){const m=C.deviceLabel&&cameraOptions.find(d=>d.lab===C.deviceLabel);if(m){C.deviceId=m.id;saveC()}}
