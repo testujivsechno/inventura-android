@@ -691,6 +691,12 @@ async function testCamerasRun(){
    const description=side?side+' kamera '+sideIndex+(features.length?' s '+features.join(' a '):''):'Kamera '+(i+1);
    cameraOptions.push({id:d.deviceId,label,lab:d.label||'',info:'',facing,maxRes,description,focusModes,hasTorch});
   }
+  // V nabídce řaď nejdříve zadní kamery a v rámci skupiny podle nejvyššího rozlišení.
+  cameraOptions.sort((a,b)=>{
+   const side=(b.facing==='environment'?1:0)-(a.facing==='environment'?1:0);
+   if(side)return side;
+   return cameraResolutionPixels(b)-cameraResolutionPixels(a);
+  });
   if(C.deviceId&&!cameraOptions.some(d=>d.id===C.deviceId)){const m=C.deviceLabel&&cameraOptions.find(d=>d.lab===C.deviceLabel);if(m){C.deviceId=m.id;saveC()}}
   const webCount=cameraOptions.length;
   let model='';
@@ -709,16 +715,16 @@ async function testCamerasRun(){
    : 'Kontrola kamer dokončena. Nebyly nalezeny žádné kamery dostupné pro skenování.';
  }catch(e){cameraTestInfo='Seznam kamer se nepodařilo načíst: '+(e.message||e)}rr();
 }
+function cameraResolutionPixels(d){
+ const m=String(d&&d.maxRes||'').match(/(\d+)\s*×\s*(\d+)/);
+ return m?Number(m[1])*Number(m[2]):0;
+}
 function bestAutoCamera(){
- const score=d=>{
-  let n=d.facing==='environment'?100:0;
-  if((d.focusModes||[]).includes('continuous'))n+=40;
-  if(d.hasTorch)n+=20;
-  const m=String(d.maxRes||'').match(/(\d+)\s*×\s*(\d+)/);
-  if(m)n+=Math.min(20,(Number(m[1])*Number(m[2]))/1000000);
-  return n;
- };
- return cameraOptions.filter(d=>d.facing==='environment').sort((a,b)=>score(b)-score(a))[0]||null;
+ return cameraOptions.filter(d=>d.facing==='environment').sort((a,b)=>
+  cameraResolutionPixels(b)-cameraResolutionPixels(a)||
+  Number((b.focusModes||[]).includes('continuous'))-Number((a.focusModes||[]).includes('continuous'))||
+  Number(!!b.hasTorch)-Number(!!a.hasTorch)
+ )[0]||null;
 }
 function setVol(x){C.vol=+x;const e=$('sv_vol');if(e)e.textContent=Math.round(x*100)+' %';saveC()}
 // Ukotvení hlavičky: když je vypnuté, hlavička zmizí při posunu dolů a vrátí se při posunu nahoru
