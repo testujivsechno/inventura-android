@@ -1146,7 +1146,12 @@ function camTestClose(){if(!ct)return;ctStop();ct.el.remove();ct=null}
 function ctReset(){if(!ct)return;ct.t0=Date.now();ct.reads=0;ct.first=null;ct.last='';ctSay()}
 async function ctStart(id){if(!ct)return;const my=++ct.gen;ctStop();ct.id=id;ctChips();ctSay('Spouštím kameru…');
  try{const base={width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30,max:30}};
-  const s=await navigator.mediaDevices.getUserMedia({video:id?Object.assign({},base,{deviceId:{exact:id}}):Object.assign({},base,{facingMode:{ideal:'environment'}}),audio:false});
+  // Zkouška čtení používá stejnou automatickou volbu jako hlavní skener Inventury.
+  const preferred=!id?bestAutoCamera():null;
+  const openId=id||(preferred&&preferred.id)||'';
+  let s;
+  try{s=await navigator.mediaDevices.getUserMedia({video:openId?Object.assign({},base,{deviceId:{exact:openId}}):Object.assign({},base,{facingMode:{ideal:'environment'}}),audio:false})}
+  catch(first){if(id)throw first;s=await navigator.mediaDevices.getUserMedia({video:Object.assign({},base,{facingMode:{ideal:'environment'}}),audio:false})}
   if(!ct||my!==ct.gen){s.getTracks().forEach(x=>x.stop());return}
   ct.s=s;const tr=s.getVideoTracks()[0];
   try{const caps=tr.getCapabilities?tr.getCapabilities():{};if(caps.focusMode&&caps.focusMode.includes('continuous'))await tr.applyConstraints({focusMode:'continuous'})}catch(e){}
