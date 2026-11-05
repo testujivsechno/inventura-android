@@ -691,9 +691,17 @@ async function testCamerasRun(){
    const description=side?side+' kamera '+sideIndex+(features.length?' s '+features.join(' a '):''):'Kamera '+(i+1);
    cameraOptions.push({id:d.deviceId,label,lab:d.label||'',info:'',facing,maxRes,description,focusModes,hasTorch});
   }
-  // V nabídce řaď nejdříve zadní kamery a v rámci skupiny podle nejvyššího rozlišení.
+  // V nabídce jsou vždy nejdříve zadní, potom přední kamery.
+  // Některé verze WebView vracejí facingMode v odlišném tvaru nebo prázdný;
+  // proto při řazení ověřujeme také popisek zařízení.
   cameraOptions.sort((a,b)=>{
-   const side=(b.facing==='environment'?1:0)-(a.facing==='environment'?1:0);
+   const group=d=>{
+    const f=String(d.facing||'').toLowerCase(),l=String(d.lab||'').toLowerCase();
+    if(f==='environment'||f==='back'||/facing back|rear|environment/.test(l))return 0;
+    if(f==='user'||f==='front'||/facing front|front|user/.test(l))return 1;
+    return 2;
+   };
+   const side=group(a)-group(b);
    if(side)return side;
    return cameraResolutionPixels(b)-cameraResolutionPixels(a);
   });
@@ -720,7 +728,10 @@ function cameraResolutionPixels(d){
  return m?Number(m[1])*Number(m[2]):0;
 }
 function bestAutoCamera(){
- return cameraOptions.filter(d=>d.facing==='environment').sort((a,b)=>
+ return cameraOptions.filter(d=>{
+  const f=String(d.facing||'').toLowerCase(),l=String(d.lab||'').toLowerCase();
+  return f==='environment'||f==='back'||/facing back|rear|environment/.test(l);
+ }).sort((a,b)=>
   cameraResolutionPixels(b)-cameraResolutionPixels(a)||
   Number((b.focusModes||[]).includes('continuous'))-Number((a.focusModes||[]).includes('continuous'))||
   Number(!!b.hasTorch)-Number(!!a.hasTorch)
