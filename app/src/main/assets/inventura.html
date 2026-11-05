@@ -649,7 +649,16 @@ function setSignal(k,val){
  }
 }
 function setCam(x){C.cam=x;saveC();applyCfg()}
-function setCameraDevice(x){const o=cameraOptions.find(d=>d.id===x);C.deviceId=x||'';C.deviceLabel=x&&o?o.lab||'':'';saveC();cameraTestInfo=x?'Vybraná kamera uložena.':'Kamera se bude vybírat automaticky.'}
+function cameraDetailText(id,list){
+ if(!id)return 'Automaticky: výběr kamery ponecháš na telefonu.';
+ const d=(list||cameraOptions).find(x=>x.id===id);if(!d)return 'Vybraná kamera není aktuálně v seznamu dostupných kamer.';
+ return d.description+(d.maxRes?' Maximální rozlišení: '+d.maxRes+' px.':' Maximální rozlišení se nepodařilo zjistit.');
+}
+function setCameraDevice(x){
+ const o=cameraOptions.find(d=>d.id===x);C.deviceId=x||'';C.deviceLabel=x&&o?o.lab||'':'';saveC();
+ cameraTestInfo=x?'Vybraná kamera uložena.':'Kamera se bude vybírat automaticky.';
+ const detail=$('camdetail'),result=$('camresult');if(detail)detail.textContent=cameraDetailText(C.deviceId);if(result)result.textContent=cameraTestInfo;
+}
 // Test kamer nesmí běžet dvakrát najednou (dva běhy sdílejí seznam a vznikaly duplicitní kamery)
 let camBusy=false;
 async function testCameras(){if(camBusy)return;camBusy=true;try{await testCamerasRun()}finally{camBusy=false}}
@@ -662,27 +671,42 @@ async function testCamerasRun(){
  try{
   const ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');cameraOptions=[];
   for(let i=0;i<ds.length;i++){
-   const d=ds[i];let label=d.label||('Kamera '+(i+1)),info='';
-   try{const st=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:d.deviceId},width:{ideal:1280},height:{ideal:720}},audio:false});const tr=st.getVideoTracks()[0],sett=tr.getSettings?tr.getSettings():{},caps=tr.getCapabilities?tr.getCapabilities():{};info=(sett.width&&sett.height?sett.width+'×'+sett.height:'rozlišení nezjištěno')+(caps.focusMode?' · ostření '+caps.focusMode.join('/'):' · ostření bez diagnostiky')+(caps.zoom?' · zoom':'')+(caps.torch?' · svítilna':'');tr.stop();
-   }catch(e){info='test selhal: '+(e.name||'chyba')}
-   cameraOptions.push({id:d.deviceId,label,lab:d.label||'',info});
+   const d=ds[i];let facing='',maxRes='',focusModes=[],hasTorch=false;
+   try{
+    const st=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:d.deviceId},width:{ideal:1280},height:{ideal:720}},audio:false});
+    const tr=st.getVideoTracks()[0],caps=tr.getCapabilities?tr.getCapabilities():{},sett=tr.getSettings?tr.getSettings():{};
+    const fm=caps.focusMode||[];focusModes=Array.isArray(fm)?fm:[];
+    facing=sett.facingMode||(/facing back|environment/i.test(d.label||'')?'environment':/facing front|user/i.test(d.label||'')?'user':'');
+    if(caps.width&&caps.height&&caps.width.max&&caps.height.max)maxRes=caps.width.max+' × '+caps.height.max;
+    hasTorch=!!caps.torch;tr.stop();
+   }catch(e){}
+   const back=facing==='environment'||/facing back/i.test(d.label||''),front=facing==='user'||/facing front/i.test(d.label||'');
+   const side=back?'Zadní':front?'Přední':'';
+   const sideIndex=ds.slice(0,i+1).filter(q=>back?/facing back/i.test(q.label||'')||q===d:front?/facing front/i.test(q.label||'')||q===d:false).length;
+   const label=side?side+' kamera '+sideIndex:'Kamera '+(i+1);
+   const features=[];
+   if(focusModes.includes('continuous'))features.push('průběžným ostřením');
+   else if(focusModes.length)features.push('bez průběžného ostření (podporuje '+focusModes.join('/')+')');
+   if(hasTorch)features.push('svítilnou');
+   const description=side?side+' kamera '+sideIndex+(features.length+' '+features.join(' a ')?' s '+features.join(' a '):''):'Kamera '+(i+1);
+   cameraOptions.push({id:d.deviceId,label,lab:d.label||'',info:'',facing,maxRes,description});
   }
   if(C.deviceId&&!cameraOptions.some(d=>d.id===C.deviceId)){const m=C.deviceLabel&&cameraOptions.find(d=>d.lab===C.deviceLabel);if(m){C.deviceId=m.id;saveC()}}
   const webCount=cameraOptions.length;
-  let report=webCount
-   ? 'Nalezeno kamer: '+webCount+'.'
-   : 'Nebyly nalezeny žádné dostupné kamery.';
+  let model='';
   try{
    if(window.Android&&typeof Android.getNativeCameraInfo==='function'){
     const ni=JSON.parse(Android.getNativeCameraInfo());
     if(ni&&ni.ok!==false){
-     const model=[ni.manufacturer,ni.model].filter(Boolean).join(' ');
-     if(model)report+=' Telefon: '+model+'.';
-     if(ni.androidVersion)report+=' Android '+ni.androidVersion+'.';
+     model=[ni.manufacturer,ni.model].filter(Boolean).join(' ');
+     if(model==='Samsung SM-S911B')model='Samsung Galaxy S23';
     }
    }
   }catch(nativeError){}
-  cameraTestInfo=report;
+  const cameraCountText=webCount===1?'1 kameru dostupnou':webCount>=2&&webCount<=4?webCount+' kamery dostupné':webCount>4?webCount+' kamer dostupných':'';
+  cameraTestInfo=webCount
+   ? 'Kontrola kamer dokončena. '+(model?'Telefon '+model:'Zařízení')+' nabízí '+cameraCountText+' pro skenování.'
+   : 'Kontrola kamer dokončena. Nebyly nalezeny žádné kamery dostupné pro skenování.';
  }catch(e){cameraTestInfo='Seznam kamer se nepodařilo načíst: '+(e.message||e)}rr();
 }
 function setVol(x){C.vol=+x;const e=$('sv_vol');if(e)e.textContent=Math.round(x*100)+' %';saveC()}
@@ -717,7 +741,7 @@ function pageSet(){
  const camList=cameraOptions.slice();
  if(C.deviceId&&!camList.some(d=>d.id===C.deviceId))camList.unshift({id:C.deviceId,label:C.deviceLabel||'Dříve vybraná kamera',info:'uložená volba'});
  const fmts=FMT.map(f=>'<label class="sw sws"><span>'+f[1]+'</span><input type="checkbox"'+(C.fm.includes(f[0])?' checked':'')+' onchange="setFm(\''+f[0]+'\',this)"></label>').join('');
- const kamera='<p class="mut sm">Seznam kamer se načte automaticky při prvním otevření této části. Pokud změníš oprávnění nebo se kamera nezobrazí, klepni na Obnovit seznam kamer.</p><p class="mut sm">Při volbě Automaticky vybírá kameru telefon. Když některá kamera čte lépe, vyber ji ručně; volba se uloží.</p><button class="btn" onclick="testCameras()">Obnovit seznam kamer</button><button class="btn" style="margin-top:10px" onclick="camTestOpen()">Vyzkoušet čtení kamerou</button><label class="mut sm" for="camdev">Typ kamery</label><select id="camdev" class="in" onchange="setCameraDevice(this.value)"><option value=""'+(!C.deviceId?' selected':'')+'>Automaticky (výběr telefonu)</option>'+camList.map(d=>'<option value="'+esc(d.id)+'"'+(C.deviceId===d.id?' selected':'')+'>'+esc(d.label+' — '+d.info)+'</option>').join('')+'</select><p class="mut sm">'+esc(cameraTestInfo)+'</p>'+
+ const kamera='<p class="mut sm">Kamery se načtou automaticky. Pokud některá chybí nebo změníš oprávnění, klepni na Obnovit seznam kamer. Nejlepší kameru pro čtení kódů si můžeš vybrat ručně.</p><button class="btn" onclick="testCameras()">Obnovit seznam kamer</button><button class="btn" style="margin-top:10px" onclick="camTestOpen()">Vyzkoušet čtení kamerou</button><label class="mut sm" for="camdev">Typ kamery</label><select id="camdev" class="in" onchange="setCameraDevice(this.value)"><option value=""'+(!C.deviceId?' selected':'')+'>Automaticky – výběr telefonu</option>'+camList.map(d=>'<option value="'+esc(d.id)+'"'+(C.deviceId===d.id?' selected':'')+'>'+esc(d.label+(d.maxRes?' – '+d.maxRes+' px':''))+'</option>').join('')+'</select><p class="mut sm" id="camdetail">'+esc(cameraDetailText(C.deviceId,camList))+'</p><p class="mut sm" id="camresult">'+esc(cameraTestInfo)+'</p>'+
   '<label class="mut sm" for="cam2">Velikost okna kamery</label><select id="cam2" class="in" onchange="setCam(this.value)">'+op('cam',[['s','Malé'],['m','Střední'],['l','Velké (až přes půl displeje)']])+'</select>'+
   '<label class="mut sm" for="car">Oblast čtení</label><select id="car" class="in" onchange="setC(\'ar\',this.value)">'+op('ar',[['band','Široké pásmo u čáry (doporučeno)'],['narrow','Užší pruh u čáry'],['full','Celé okno kamery']])+'</select><p class="mut sm">Čte se jen z oblasti v rámečku, takže se nechytají sousední štítky. Při zapnutém samotném QR nebo Data Matrix se čte celý záběr.</p>';
  const skener='<label class="mut sm" for="ccf">Potvrzení čtení</label><select id="ccf" class="in" onchange="setC(\'cf\',+this.value)">'+op('cf',[[1,'1× (nejrychlejší)'],[2,'2× shodně za sebou (doporučeno)'],[3,'3× shodně za sebou (nejpřesnější)']])+'</select><p class="mut sm">Kód se přijme, až když ho kamera přečte vícekrát stejně. Odstraní to chybná čtení.</p>'+
