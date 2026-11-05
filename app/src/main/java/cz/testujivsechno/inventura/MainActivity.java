@@ -11,6 +11,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Vibrator;
+import android.os.VibrationEffect;
+import android.content.res.Configuration;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
@@ -41,8 +44,7 @@ public class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        getWindow().setStatusBarColor(android.graphics.Color.rgb(237,239,241));
-        getWindow().setNavigationBarColor(android.graphics.Color.rgb(237,239,241));
+        updateSystemBars();
         assetLoader = new WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
                 .build();
@@ -96,6 +98,23 @@ public class MainActivity extends Activity {
         else requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA);
     }
 
+    private void updateSystemBars() {
+        boolean dark = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
+        int color = dark ? android.graphics.Color.rgb(14, 20, 32) : android.graphics.Color.rgb(237, 239, 241);
+        getWindow().setStatusBarColor(color);
+        getWindow().setNavigationBarColor(color);
+        int flags = getWindow().getDecorView().getSystemUiVisibility();
+        if (dark) flags &= ~(android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        else flags |= android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        getWindow().getDecorView().setSystemUiVisibility(flags);
+    }
+
+    @Override public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        updateSystemBars();
+    }
+
     private void loadApp() { webView.loadUrl("https://appassets.androidplatform.net/assets/inventura.html"); }
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
@@ -130,6 +149,16 @@ public class MainActivity extends Activity {
     public class AndroidBridge {
         @JavascriptInterface public String getNativeCameraInfo() { return buildCameraReport().toString(); }
         @JavascriptInterface public void closeApp() { runOnUiThread(() -> finish()); }
+        @JavascriptInterface public boolean vibrate(int pattern) {
+            try {
+                Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+                if (vibrator == null || !vibrator.hasVibrator()) return false;
+                long[] timings = pattern == 0 ? new long[]{0, 60} : new long[]{0, 40, 60, 40};
+                if (Build.VERSION.SDK_INT >= 26) vibrator.vibrate(VibrationEffect.createWaveform(timings, -1));
+                else vibrator.vibrate(timings, -1);
+                return true;
+            } catch (Exception e) { return false; }
+        }
 
         // HTML exports a Blob URL. Read it inside the same WebView origin, then pass bytes to Android.
         @JavascriptInterface public void saveFile(String fileName, String blobUrl) {
