@@ -704,7 +704,7 @@ function lk(el){if(LK&&LK.el===el){el.value=LK.val;return true}return false}
 function setScale(k,val){setTimeout(measureMq,80);C[k]=+val;const e=$('sv_'+k);if(e)e.textContent=Math.round(C[k]*100)+' %';applyCfg();saveC()}
 function resetScale(){setTimeout(measureMq,80);C.fs=C.bs=C.cs=1;saveC();applyCfg();render()}
 function setFm(f,el){const q=new Set(C.fm);el.checked?q.add(f):q.delete(f);if(!q.size){el.checked=true;toast('Musí zůstat zapnutý aspoň jeden typ kódu');return}C.fm=FMT.map(x=>x[0]).filter(x=>q.has(x));saveC()}
-function testBeep(){beep('ok');setTimeout(()=>beep('warn'),450)}
+function testBeep(){beep('ok',1);setTimeout(()=>beep('warn',1),450)}
 function testSignals(){
  if(!C.snd&&!C.vib){toast('Zvuky i vibrace jsou vypnuté. Zapni aspoň jedno.');return}
  const parts=[];
