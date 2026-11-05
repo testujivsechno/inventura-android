@@ -391,7 +391,7 @@ function tone(a,f,t0,dur,vol){const o=a.createOscillator(),g=a.createGain();o.ty
  g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+.01);g.gain.setValueAtTime(vol,t0+dur-.02);g.gain.linearRampToValueAtTime(0,t0+dur);
  o.connect(g);g.connect(a.destination);o.start(t0);o.stop(t0+dur+.02)}
 function beep(type='ok',nv){
- try{if(!nv&&C.vib&&navigator.vibrate){if(type==='ok')navigator.vibrate(60);else navigator.vibrate([40,60,40])}}catch(e){}
+ try{if(!nv&&C.vib){if(window.Android&&Android.vibrate)Android.vibrate(type==='ok'?0:1);else if(navigator.vibrate){if(type==='ok')navigator.vibrate(60);else navigator.vibrate([40,60,40])}}}catch(e){}
  if(!C.snd)return;
  try{const a=audio(),t=a.currentTime+.02,vol=(C.vol==null?.6:C.vol)*.35;
   if(type==='ok')tone(a,880,t,.14,vol);
@@ -700,9 +700,8 @@ function testSignals(){
  if(!C.snd&&!C.vib){toast('Zvuky i vibrace jsou vypnuté. Zapni aspoň jedno.');return}
  let m;
  if(!C.vib)m='Vibrace jsou vypnuté.';
- else if(!navigator.vibrate)m='Vibrace tento prohlížeč nebo aplikace nepodporuje.';
- else{let ok=false;try{ok=navigator.vibrate([150,100,150])}catch(e){}
-  m=ok?'Vibrace odeslána (2× krátce). Když nic necítíš, zkontroluj vibrace v telefonu a oprávnění aplikace.':'Vibraci systém zablokoval. Klepni na tlačítko znovu.'}
+ else{let ok=false;try{ok=window.Android&&Android.vibrate?Android.vibrate(1):navigator.vibrate&&navigator.vibrate([150,100,150])}catch(e){}
+  m=ok?'Vibrace odeslána (2× krátce). Pokud nic necítíš, zkontroluj nastavení vibrací telefonu.':'Telefon vibrace nepodporuje nebo jsou systémově vypnuté.'}
  if(C.snd){beep('ok',1);setTimeout(()=>beep('warn',1),450)}else m+=' Zvuky jsou vypnuté.';
  toast(m)}
 function pageSet(){
@@ -1129,12 +1128,15 @@ async function camTestOpen(){
  document.body.appendChild(el);ctChips();ctStart(ct.id)}
 // ===== Stav úložiště a offline provozu (Nastavení) =====
 async function chkStore(){const e=$('stg');if(!e)return;
- try{const p=navigator.storage&&navigator.storage.persisted?await navigator.storage.persisted():null;let u='';
+ try{let u='';
   if(navigator.storage&&navigator.storage.estimate){const q=await navigator.storage.estimate();u=' · využito '+((q.usage||0)/1048576).toFixed(1).replace('.',',')+' MB'}
   const e2=$('stg');if(!e2)return;
-  e2.innerHTML=(p===true?'Trvalé úložiště: zapnuto':p===false?'Trvalé úložiště: vypnuto, ukládej zálohy':'Trvalé úložiště: nelze zjistit')+esc(u)+(p===false?'<br><button class="btn" style="margin-top:8px" type="button" onclick="askPersist()">Zapnout trvalé úložiště</button>':'')}
- catch(x){const e3=$('stg');if(e3)e3.textContent='Stav úložiště se nepodařilo zjistit.'}}
-async function askPersist(){try{const ok=await navigator.storage.persist();toast(ok?'Trvalé úložiště zapnuto':'Telefon trvalé úložiště nepovolil')}catch(e){toast('Požadavek se nepodařil')}chkStore()}
+  const supported=!!(navigator.storage&&navigator.storage.persist&&navigator.storage.persisted);
+  const p=supported?await navigator.storage.persisted():null;
+  e2.textContent=(p===true?'Trvalé úložiště: ochrana aktivní':p===false?'Trvalé úložiště: ochrana prohlížeče není aktivní':'Data se ukládají do interního úložiště aplikace; samostatné přepnutí ochrany WebView není dostupné.')+u;
+  if(supported&&p===false){const b=document.createElement('button');b.className='btn';b.style.marginTop='8px';b.type='button';b.textContent='Požádat o ochranu úložiště';b.onclick=askPersist;e2.appendChild(document.createElement('br'));e2.appendChild(b)}
+ }catch(x){const e3=$('stg');if(e3)e3.textContent='Data se ukládají do interního úložiště aplikace. Stav ochrany nelze ověřit.'}}
+async function askPersist(){if(!navigator.storage||!navigator.storage.persist){toast('Tato verze Android WebView nepodporuje samostatné přepnutí ochrany úložiště. Data aplikace se ukládají interně; pravidelně exportuj zálohu.');return}try{const ok=await navigator.storage.persist();toast(ok?'Ochrana úložiště zapnuta':'Telefon ochranu úložiště nepovolil')}catch(e){toast('Požadavek se nepodařil')}chkStore()}
 async function chkOffline(){const e=$('ofl');if(!e)return;
  try{
   if(!('caches' in window)){e.textContent='Offline provoz: nelze ověřit';return}
