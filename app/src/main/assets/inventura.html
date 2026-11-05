@@ -639,6 +639,15 @@ function cameraErrorText(e){
  return (m[n]||'Kameru se nepodařilo spustit. Zkontroluj oprávnění Chromu a webu, zavři jiné aplikace používající kameru a zkus volbu Automaticky.')+' Technická chyba: '+n+(e&&e.message?' ('+e.message+')':'')+'.';
 }
 function setC(k,val){C[k]=val;saveC()}
+function setSignal(k,val){
+ C[k]=!!val;saveC();
+ if(!val)return;
+ if(k==='snd'){beep('ok',1);return}
+ if(k==='vib'){
+  let ok=false;try{ok=window.Android&&Android.vibrate?Android.vibrate(0):navigator.vibrate&&navigator.vibrate(60)}catch(e){}
+  if(!ok)toast('Telefon vibrace nepodporuje nebo jsou systémově vypnuté.');
+ }
+}
 function setCam(x){C.cam=x;saveC();applyCfg()}
 function setCameraDevice(x){const o=cameraOptions.find(d=>d.id===x);C.deviceId=x||'';C.deviceLabel=x&&o?o.lab||'':'';saveC();cameraTestInfo=x?'Vybraná kamera uložena.':'Kamera se bude vybírat automaticky.'}
 // Test kamer nesmí běžet dvakrát najednou (dva běhy sdílejí seznam a vznikaly duplicitní kamery)
@@ -698,22 +707,21 @@ function setFm(f,el){const q=new Set(C.fm);el.checked?q.add(f):q.delete(f);if(!q
 function testBeep(){beep('ok');setTimeout(()=>beep('warn'),450)}
 function testSignals(){
  if(!C.snd&&!C.vib){toast('Zvuky i vibrace jsou vypnuté. Zapni aspoň jedno.');return}
- let m;
- if(!C.vib)m='Vibrace jsou vypnuté.';
- else{let ok=false;try{ok=window.Android&&Android.vibrate?Android.vibrate(1):navigator.vibrate&&navigator.vibrate([150,100,150])}catch(e){}
-  m=ok?'Vibrace odeslána (2× krátce). Pokud nic necítíš, zkontroluj nastavení vibrací telefonu.':'Telefon vibrace nepodporuje nebo jsou systémově vypnuté.'}
- if(C.snd){beep('ok',1);setTimeout(()=>beep('warn',1),450)}else m+=' Zvuky jsou vypnuté.';
- toast(m)}
+ const parts=[];
+ if(C.vib){let ok=false;try{ok=window.Android&&Android.vibrate?Android.vibrate(1):navigator.vibrate&&navigator.vibrate([150,100,150])}catch(e){}
+  parts.push(ok?'Vibrace odeslána.':'Vibrace nejsou dostupné nebo jsou vypnuté v telefonu.')}
+ if(C.snd){beep('ok',1);setTimeout(()=>beep('warn',1),450);parts.push('Zvuk přehrán.')}
+ toast(parts.join(' '))}
 function pageSet(){
  const sl=(k,t)=>'<div class="set"><div class="hd"><label for="s_'+k+'">'+t+'</label><b class="num" id="sv_'+k+'">'+Math.round(C[k]*100)+' %</b></div><input id="s_'+k+'" class="rg lk" type="range" min="0.7" max="1.3" step="0.05" value="'+C[k]+'" oninput="if(lk(this))return;setScale(\''+k+'\',this.value)"></div>';
- const tg=(k,t)=>'<label class="sw sws"><span>'+t+'</span><input type="checkbox"'+(C[k]?' checked':'')+' onchange="setC(\''+k+'\',this.checked)"></label>';
+ const tg=(k,t)=>'<label class="sw sws"><span>'+t+'</span><input type="checkbox"'+(C[k]?' checked':'')+' onchange="'+(k==='snd'||k==='vib'?'setSignal':'setC')+'(\''+k+'\',this.checked)"></label>';
  const vw=(k,t)=>'<label class="sw sws"><span>'+t+'</span><input type="checkbox"'+(C[k]?' checked':'')+' onchange="setView(\''+k+'\',this)"></label>';
  const op=(k,a)=>a.map(o=>'<option value="'+o[0]+'"'+(String(C[k])===String(o[0])?' selected':'')+'>'+o[1]+'</option>').join('');
  const H2=(t,first)=>'<h2 class="sec'+(first?' first':'')+'">'+t+'</h2>', H3=t=>'<h3 class="sub">'+t+'</h3>';
  const camList=cameraOptions.slice();
  if(C.deviceId&&!camList.some(d=>d.id===C.deviceId))camList.unshift({id:C.deviceId,label:C.deviceLabel||'Dříve vybraná kamera',info:'uložená volba'});
  const fmts=FMT.map(f=>'<label class="sw sws"><span>'+f[1]+'</span><input type="checkbox"'+(C.fm.includes(f[0])?' checked':'')+' onchange="setFm(\''+f[0]+'\',this)"></label>').join('');
- const kamera='<p class="mut sm">Při volbě Automaticky vybírá kameru telefon a u telefonů s více objektivy nemusí zvolit tu nejpřesnější pro čárové kódy. Když některá kamera čte lépe, vyber ji ručně, volba se uloží.</p><button class="btn" onclick="testCameras()">Otestovat dostupné kamery</button><button class="btn" style="margin-top:10px" onclick="camTestOpen()">Vyzkoušet čtení kamerou</button><label class="mut sm" for="camdev">Typ kamery</label><select id="camdev" class="in" onchange="setCameraDevice(this.value)"><option value=""'+(!C.deviceId?' selected':'')+'>Automaticky (výběr telefonu)</option>'+camList.map(d=>'<option value="'+esc(d.id)+'"'+(C.deviceId===d.id?' selected':'')+'>'+esc(d.label+' — '+d.info)+'</option>').join('')+'</select><p class="mut sm">'+esc(cameraTestInfo)+'</p>'+
+ const kamera='<p class="mut sm">Seznam kamer se načte automaticky při prvním otevření této části. Pokud změníš oprávnění nebo se kamera nezobrazí, klepni na Obnovit seznam kamer.</p><p class="mut sm">Při volbě Automaticky vybírá kameru telefon. Když některá kamera čte lépe, vyber ji ručně; volba se uloží.</p><button class="btn" onclick="testCameras()">Obnovit seznam kamer</button><button class="btn" style="margin-top:10px" onclick="camTestOpen()">Vyzkoušet čtení kamerou</button><label class="mut sm" for="camdev">Typ kamery</label><select id="camdev" class="in" onchange="setCameraDevice(this.value)"><option value=""'+(!C.deviceId?' selected':'')+'>Automaticky (výběr telefonu)</option>'+camList.map(d=>'<option value="'+esc(d.id)+'"'+(C.deviceId===d.id?' selected':'')+'>'+esc(d.label+' — '+d.info)+'</option>').join('')+'</select><p class="mut sm">'+esc(cameraTestInfo)+'</p>'+
   '<label class="mut sm" for="cam2">Velikost okna kamery</label><select id="cam2" class="in" onchange="setCam(this.value)">'+op('cam',[['s','Malé'],['m','Střední'],['l','Velké (až přes půl displeje)']])+'</select>'+
   '<label class="mut sm" for="car">Oblast čtení</label><select id="car" class="in" onchange="setC(\'ar\',this.value)">'+op('ar',[['band','Široké pásmo u čáry (doporučeno)'],['narrow','Užší pruh u čáry'],['full','Celé okno kamery']])+'</select><p class="mut sm">Čte se jen z oblasti v rámečku, takže se nechytají sousední štítky. Při zapnutém samotném QR nebo Data Matrix se čte celý záběr.</p>';
  const skener='<label class="mut sm" for="ccf">Potvrzení čtení</label><select id="ccf" class="in" onchange="setC(\'cf\',+this.value)">'+op('cf',[[1,'1× (nejrychlejší)'],[2,'2× shodně za sebou (doporučeno)'],[3,'3× shodně za sebou (nejpřesnější)']])+'</select><p class="mut sm">Kód se přijme, až když ho kamera přečte vícekrát stejně. Odstraní to chybná čtení.</p>'+
@@ -739,7 +747,7 @@ function pageSet(){
  const zvuk='<div class="set"><div class="hd"><label for="s_vol">Hlasitost</label><b class="num" id="sv_vol">'+Math.round((C.vol==null?.6:C.vol)*100)+' %</b></div><input id="s_vol" class="rg" type="range" min="0.1" max="1" step="0.05" value="'+(C.vol==null?.6:C.vol)+'" oninput="setVol(this.value)" onchange="testBeep()"></div>';
  const vraceni='<label class="mut sm" for="ut">Jak dlouho se zobrazuje hláška s tlačítkem Vrátit</label><select id="ut" class="in" onchange="setC(\'ut\',+this.value)">'+op('ut',[[3,'3 sekundy'],[6,'6 sekund (výchozí)'],[10,'10 sekund'],[15,'15 sekund'],[30,'30 sekund']])+'</select><p class="mut sm">Po zápisu položky nebo přebytku se na chvíli objeví hláška, kterou můžeš zápis vrátit. Starší zápisy jdou vrátit i potom na kartě Souhrn v části Poslední zápisy a vrácení.</p>';
  const fotky='<label class="mut sm" for="pxs">Rozlišení fotek přebytků</label><select id="pxs" class="in" onchange="setC(\'phpx\',+this.value)">'+[[1000,'Úsporné (1000 px, výchozí)'],[1600,'Čitelnější štítky (1600 px)'],[2400,'Nejlepší (2400 px, velké soubory)']].map(o=>'<option value="'+o[0]+'"'+((+C.phpx||1000)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select><p class="mut sm">Platí pro nově pořízené fotky. Větší rozlišení zabere víc místa v telefonu i v záloze. Už pořízené fotky se nemění.</p>';
- const uloziste='<p class="mut sm" id="stg">Zjišťuji stav úložiště…</p><p class="mut sm" id="ofl">Zjišťuji offline provoz…</p>';
+ const uloziste='<p class="mut sm" id="stg">Zjišťuji stav úložiště…</p><p class="mut sm" id="ofl">Zjišťuji offline provoz…</p><p class="mut sm">Povolení trvalého úložiště může Android nebo WebView odmítnout. To samo o sobě nebrání běžnému ukládání dat v aplikaci. Data jsou v úložišti aplikace; po odinstalování nebo vymazání dat aplikace se smažou. Důležité výsledky pravidelně zálohuj v části Souhrn.</p>';
  const body=H2('Kamera',1)+kamera+
   H2('Skener')+skener+
   H2('Fotky přebytků')+fotky+
