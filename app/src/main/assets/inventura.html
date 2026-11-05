@@ -1,0 +1,1256 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inventura</title><link rel="manifest" href="inventura.json"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="theme-color" content="#14213D"><meta name="color-scheme" content="light dark">
+<style>
+:root{--on:#14213D;--bg:#EDEFF1;--surf:#fff;--ink:#14213D;--mut:#5B667A;--line:#D3D8DF;--acc:#FFC400;--ok:#1B7F52;--bad:#C0392B;--okbg:#DDF1E7;--badbg:#F7DEDB;--tbg:#FFF3C4;--or:#B85C00;--orbg:#FFE7CC;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="dark"]{--bg:#0E1420;--surf:#18202F;--ink:#EAEEF5;--mut:#9AA6BA;--line:#2B364A;--ok:#4CC38A;--bad:#FF7B6B;--okbg:#14362A;--badbg:#3E1D1A;--tbg:#3B3410;--or:#FFB066;--orbg:#4A2E10;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 150px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:14px 0 10px;z-index:5}
+h1{font:700 32px/1.1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;margin:0 0 4px;display:flex;align-items:center;justify-content:space-between}
+.offline-dot{width:10px;height:10px;background:var(--ck);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--ck);vertical-align:middle;margin-left:8px}
+h2{font-size:20px;margin:6px 0 2px}
+.num{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-weight:700;letter-spacing:.02em}
+.mut{color:var(--mut);margin:2px 0 8px}.sm{font-size:14px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ck)}
+.row{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;width:100%;text-align:left;background:var(--surf);border:1px solid var(--line);border-left:1px solid var(--line);border-radius:8px;padding:12px;margin:0 0 8px;color:inherit;font:inherit;cursor:pointer;position:relative;overflow:hidden}
+.span2{grid-column:1/-1}.big{font-size:26px}.idn{font-size:22px}
+.pill{font-size:14px;font-weight:600;padding:2px 10px;border-radius:99px}.pill.f{background:var(--okbg);color:var(--ok)}.pill.m{background:var(--badbg);color:var(--bad)}.pill.x{background:var(--orbg);color:var(--or)}
+.back{background:none;border:0;color:var(--mut);font:600 16px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:0 0 6px;cursor:pointer}
+.btn{min-height:52px;border-radius:8px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:600 17px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:0 18px;cursor:pointer;width:100%}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--on)}.btn.ok{background:var(--ok);border-color:var(--ok);color:#0E1420}.btn.bad{border-color:var(--bad);color:var(--bad)}
+.fab{position:fixed;left:16px;right:16px;width:auto;max-width:528px;margin:0 auto;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:6;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.nav{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr;background:var(--surf);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:6}
+.nav button{min-height:56px;background:none;border:0;color:var(--mut);font:600 16px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer}.nav button.on{color:var(--ink);box-shadow:inset 0 3px 0 var(--acc)}
+.scrim{position:fixed;inset:0;background:rgba(10,15,25,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surf);width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px));max-height:92%;overflow:auto;animation:up .18s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:0}}@media(prefers-reduced-motion:reduce){.sheet{animation:none}}
+.tag{background:var(--acc);color:var(--on);border-radius:6px;padding:4px 12px;display:inline-block}.idb{font-size:38px;line-height:1.1}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:10px 0}dt{color:var(--mut)}dd{margin:0}
+.qty,.sw{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.qty div{display:flex;align-items:center;gap:14px}.qty b{font-size:30px;min-width:36px;text-align:center}.sq{width:52px;padding:0}
+.sw input{width:28px;height:28px;accent-color:var(--ck)}
+.in{width:100%;min-height:48px;margin:6px 0;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
+.three .btn{padding-left:4px;padding-right:4px;font-size:14px;min-width:0}
+.vf{border:3px dashed var(--acc);border-radius:8px;padding:28px 12px;text-align:center;color:var(--mut);margin:10px 0}.warn{color:var(--bad);font-weight:600}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.stat{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:10px 12px}.stat{font:inherit;color:var(--ink);text-align:left;cursor:pointer;width:100%}.stat.dim{opacity:.55;cursor:default}.stat:not(.dim):active{filter:brightness(1.25)}.stat b{display:block;font-size:34px;line-height:1}
+.scroll{overflow-x:auto;margin-bottom:14px}table{border-collapse:collapse;width:100%;font-size:14px;white-space:nowrap}th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)}th{color:var(--mut);font-weight:600}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;text-align:center;line-height:1.35;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:30;opacity:0;pointer-events:none;transition:opacity .15s;font-weight:600}.toast.on{opacity:1}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+label.btn{display:block;text-align:center;line-height:48px}video{display:none;width:100%;max-height:240px;border-radius:8px;background:#0b111c;object-fit:cover;margin:8px 0}.csp video{display:block;width:100%;max-height:55vh;object-fit:cover;margin:8px 0}.hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.xb{flex:none;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:var(--bg);color:var(--ink);font-size:20px;line-height:1;cursor:pointer}
+.chips{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;align-items:center;margin:6px 0 10px;padding-bottom:4px}
+.chip{min-height:34px;padding:0 8px;border-radius:99px;border:1px solid var(--line);background:var(--surf);color:var(--ink);font:600 13px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer;flex:none;white-space:nowrap}
+.chip.on{background:var(--acc);border-color:var(--acc);color:var(--on)}.top{box-shadow:0 1px 0 var(--line)}.top .in{margin:6px 0 2px;min-height:44px}.top .chips{margin:6px 0 0}.btn:disabled{opacity:.4;cursor:not-allowed}
+/* ===== Dotykové ovládání na mobilu: větší plochy pro prst, bez zoomu a zpoždění klepnutí ===== */
+html{-webkit-text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:contain}
+button,label.btn,.row,.chip,.nav button,.xb,.sw{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.wrap{padding-bottom:180px}
+.top{padding:10px 0 8px}
+.top h1{font-size:26px;margin:0 0 2px}
+.back{min-height:44px;display:inline-flex;align-items:center;padding:0 12px 0 0;font-size:17px}
+.btn{min-height:52px;border-radius:10px}
+.btn:active,.chip:active,.nav button:active,.xb:active{filter:brightness(.92)}
+.row{padding:14px;margin:0 0 10px;border-radius:12px}
+.row:active{background:var(--bg)}
+.in,select.in{min-height:48px;font-size:16px}
+.top .in{min-height:48px}
+.chips{gap:8px;padding:2px 2px 6px;scroll-snap-type:x proximity;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{position:relative;min-height:36px;padding:0 14px;font-size:15px;scroll-snap-align:start}
+.chip::after{content:"";position:absolute;inset:-5px -2px}
+.tag{padding:1px 10px;border-radius:6px}
+.idb{font-size:26px;line-height:1.2}
+.sw{min-height:56px}.sw input{width:32px;height:32px}
+.qty .sq{width:64px;min-height:56px;font-size:26px}.qty b{font-size:34px;min-width:44px}
+.two .btn{min-height:56px}
+.xb{width:48px;height:48px}
+.sheet{max-height:94%;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.nav button{min-height:60px;font-size:17px}
+.fab{min-height:56px;bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+.chips{flex-wrap:wrap;overflow:visible;gap:6px 8px;scroll-snap-type:none}
+.chip{padding:0 12px}
+.ttl{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.ttl .back{min-height:40px}
+.chips{gap:6px}
+.chip{font-size:14px;padding:0 9px}
+.chips .br{flex-basis:100%;height:0}
+
+/* ===== Nastavení: velikost písma, tlačítek a karet (proměnné --fs, --bs, --cs) ===== */
+:root{--fs:1;--bs:1;--cs:1}
+body{font-size:calc(16px*var(--fs))}
+.sm{font-size:calc(14px*var(--fs))}
+h2{font-size:calc(20px*var(--fs))}
+.top h1{font-size:calc(26px*var(--fs))}
+.pill{font-size:calc(14px*var(--fs))}
+.stat b{font-size:calc(34px*var(--fs))}
+table{font-size:calc(14px*var(--fs))}
+.idb{font-size:calc(26px*var(--fs))}
+.back{font-size:calc(17px*var(--fs))}
+.btn{min-height:calc(52px*var(--bs));font-size:calc(17px*var(--fs))}
+label.btn{line-height:calc(48px*var(--bs))}
+.two .btn{min-height:calc(56px*var(--bs))}
+.qty .sq{width:calc(64px*var(--bs));min-height:calc(56px*var(--bs));font-size:calc(26px*var(--fs))}
+.qty b{font-size:calc(34px*var(--fs))}
+.nav{grid-template-columns:1fr 1fr 1fr 1fr}
+.nav button{min-height:calc(60px*var(--bs));font-size:calc(17px*var(--fs))}
+.fab{min-height:calc(56px*var(--bs));bottom:calc(60px*var(--bs) + 16px + env(safe-area-inset-bottom,0px))}
+.wrap{padding-bottom:calc(60px + 130px*var(--bs))}
+.chip{min-height:calc(36px*var(--bs));font-size:calc(14px*var(--fs))}
+.in,select.in{min-height:calc(48px*var(--bs));font-size:max(16px,calc(16px*var(--fs)))}
+.top .in{min-height:calc(48px*var(--bs))}
+.sw{min-height:calc(56px*var(--bs))}.sw input{width:calc(32px*var(--bs));height:calc(32px*var(--bs))}
+.xb{width:calc(48px*var(--bs));height:calc(48px*var(--bs))}
+:root{--ck:var(--ok)}
+:root[data-uni="1"]{--ck:var(--acc)}
+:root[data-uni="1"] input[type=checkbox]{accent-color:var(--ck)}
+.top{transition:transform .2s ease}.top.hid{transform:translateY(-120%)}
+.chips{display:flex;flex-wrap:wrap;overflow:visible;scroll-snap-type:none}
+ #app[data-tab="set"] .btn{min-height:calc(44px*var(--bs));font-size:calc(15px*var(--fs));padding:0 14px;border-width:1.5px}
+#app[data-tab="set"] .two .btn{min-height:calc(46px*var(--bs))}
+#app[data-tab="set"] label.btn{line-height:calc(40px*var(--bs))}
+h2.sec{margin:30px 0 8px;padding-top:16px;border-top:1px solid var(--line);position:relative}
+h2.sec::before{display:none}
+h2.sec.first{margin-top:6px;padding-top:0;border-top:0}h2.sec.first::before{display:none}
+h3.sub{margin:20px 0 6px;padding-top:12px;border-top:1px dashed var(--line);font-size:calc(16px*var(--fs));color:var(--mut)}
+h2.sec+h3.sub{margin-top:8px;padding-top:0;border-top:0}
+.ss{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:0 14px 14px;margin:0 0 18px}
+.ss h2.sec,.ss h2.sec.first{margin:0 0 8px;padding-top:14px;border-top:0}
+.ss h2.sec::before,.ss h2.sec.first::before{display:none}
+.ss .in,.ss select.in{background:var(--bg)}
+.fchips{gap:4px 6px;margin:4px 0 6px;padding-bottom:0}
+.fchips .chip{min-height:calc(28px*var(--bs));padding:0 9px;font-size:calc(12.5px*var(--fs));font-weight:500;line-height:1}
+.fchips .chip:not(.on){color:var(--mut)}
+.fchips .chip .cn{opacity:.7;font-weight:400;margin-left:2px}
+.csel{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;cursor:pointer;margin-bottom:4px}
+.cs-t{flex:1;min-width:0;overflow:hidden;white-space:nowrap}
+.cs-tx{display:inline-block}
+.cs-tx.mq{animation:csmq 7s ease-in-out infinite alternate}
+@keyframes csmq{0%,18%{transform:translateX(0)}82%,100%{transform:translateX(var(--d))}}
+@media(prefers-reduced-motion:reduce){.cs-tx.mq{animation:none}}
+.cs-ar{flex:none;color:var(--mut)}
+.csp .sheet{max-width:420px;width:calc(100% - 32px);border-radius:12px;padding:8px 0;max-height:80%}
+.cst{padding:8px 16px 4px;color:var(--mut);font-size:14px}
+.copt{display:flex;align-items:center;gap:14px;width:100%;min-height:calc(52px*var(--bs));padding:8px 16px;border:0;background:transparent;color:var(--ink);font:inherit;font-size:max(16px,calc(16px*var(--fs)));text-align:left;white-space:normal;cursor:pointer}
+.copt:active{background:var(--bg)}
+.cdot{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--mut)}
+.copt[aria-selected=true] .cdot{border-color:var(--ck);background:radial-gradient(circle,var(--ck) 0 42%,transparent 46%)}
+.sws input{width:calc(27px*var(--bs));height:calc(27px*var(--bs))}
+.row{padding:calc(14px*var(--cs));margin-bottom:calc(10px*var(--cs));gap:calc(4px*var(--cs)) 12px;font-size:calc(16px*var(--fs)*var(--cs))}
+.row .idn{font-size:calc(22px*var(--fs)*var(--cs))}
+.row .big{font-size:calc(26px*var(--fs)*var(--cs))}
+.row .sm,.row .pill{font-size:calc(14px*var(--fs)*var(--cs))}
+.set{padding:10px 0;border-top:1px solid var(--line)}.set .hd{align-items:center}
+.rg{width:100%;accent-color:var(--ck);height:calc(36px*var(--bs));margin:4px 0 0}
+select.in{margin-bottom:4px}
+/* ===== Okno kamery: rámeček oblasti čtení a červená čára ===== */
+.cw{display:none;position:relative;margin:8px 0;border-radius:8px;overflow:hidden;background:#0b111c}
+.cw video{display:block;margin:0;width:100%;max-height:var(--camh,340px)}
+.aim{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:2px solid var(--acc);border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none}
+.aim.full{border-color:transparent;box-shadow:none}
+.fr{position:absolute;width:60px;height:60px;margin:-30px 0 0 -30px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.45);pointer-events:none;animation:frp .7s ease-out forwards;z-index:3}
+@keyframes frp{from{transform:scale(1.5);opacity:1}to{transform:scale(.85);opacity:0}}
+.aim::after{content:"";position:absolute;left:4%;right:4%;top:50%;height:2px;margin-top:-1px;background:#ff2b2b;box-shadow:0 0 8px 2px rgba(255,43,43,.75);animation:ln 1s ease-in-out infinite alternate}
+@keyframes ln{from{opacity:.5}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.aim::after{animation:none}}
+.tb{position:absolute;right:8px;bottom:8px;display:none;min-height:40px;width:auto;padding:0 14px;border-radius:99px;border:0;background:rgba(0,0,0,.6);color:#fff;font:600 14px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer}
+.nav svg{width:calc(26px*var(--fs));height:calc(26px*var(--fs));vertical-align:middle}
+.toast.act{pointer-events:auto;display:flex;align-items:center;gap:12px;width:calc(100vw - 24px);max-width:480px;text-align:left;padding:12px 12px 12px 16px;font-size:16px}.toast .tm{flex:1;min-width:0;overflow-wrap:anywhere}.toast .ub{flex:none;margin-left:0;min-height:44px;min-width:84px;padding:0 16px;border:0;border-radius:6px;background:var(--acc);color:var(--on);font:600 15px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer}
+.th{width:96px;height:96px;object-fit:cover;border-radius:8px;border:1px solid var(--line);justify-self:start;cursor:pointer;background:var(--bg)}
+.xphotos{display:flex;flex-wrap:wrap;gap:8px;min-width:0}.xphotos .th{flex:0 0 96px}.xphotos .th.big{flex:1 1 100%;width:100%}
+.th.big{width:100%;height:auto;max-height:60vh;object-fit:contain}
+.th.sel{outline:4px solid var(--ck);outline-offset:-4px;opacity:.55}
+.pv{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.pv.z{display:block;overflow:auto}
+.pvi{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.pv.z .pvi{max-width:none;max-height:none;width:220%}
+.pvb{position:fixed;z-index:81;width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;font-size:28px;line-height:46px;text-align:center;padding:0;cursor:pointer}
+.pvp{left:10px;top:50%;margin-top:-24px}.pvn{right:10px;top:50%;margin-top:-24px}.pvx{right:10px;top:max(10px,env(safe-area-inset-top))}
+.pvc{position:fixed;z-index:81;left:0;right:0;top:max(16px,env(safe-area-inset-top));text-align:center;color:#fff;font-size:15px;pointer-events:none}
+.chip.bad{border-color:var(--bad);color:var(--bad)}.chip:disabled{opacity:.4;cursor:not-allowed}
+.xpc{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+</style></head><body>
+<div class="wrap" id="app"></div><div id="toast" class="toast" role="status"></div>
+<!-- Knihovny se berou z lokálních souborů vedle aplikace (funguje i offline). Když chybí, použije se CDN. -->
+<script src="xlsx.full.min.js"></script>
+<script>window.XLSX||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>')</script>
+<script src="zxing.min.js"></script>
+<script>window.ZXing||document.write('<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"><\/script>')</script>
+<script>
+/* =====================================================================
+   INVENTURA – mobilní webová aplikace
+   ===================================================================== */
+
+const $=id=>document.getElementById(id);
+const fmt=id=>{const s=String(id),raw=s.replace(/\s/g,'');const n=Number(C&&C.group);return /^\d+$/.test(raw)&&Number.isInteger(n)&&n>0?raw.replace(new RegExp('(\\d{'+n+'})(?=\\d)','g'),'$1 '):/^\d+$/.test(raw)&&Number(C&&C.group)===0?raw:s};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>String(s==null?'':s).trim();
+const idText=value=>{
+ if(typeof value!=='number') return norm(value);
+ if(!Number.isFinite(value)) return '';
+ const s=String(value);
+ if(!/[eE]/.test(s)) return s;
+ const [mantissa,expText]=s.toLowerCase().split('e'), exp=Number(expText);
+ const neg=mantissa.startsWith('-'), m=neg?mantissa.slice(1):mantissa;
+ const parts=m.split('.'), digits=parts.join(''), point=(parts[0]||'').length+exp;
+ let out=point<=0?'0.'+'0'.repeat(-point)+digits:point>=digits.length?digits+'0'.repeat(point-digits.length):digits.slice(0,point)+'.'+digits.slice(point);
+ if(out.includes('.')) out=out.replace(/0+$/,'').replace(/\.$/,'');
+ return (neg?'-':'')+out;
+};
+const KEY='inv-v1';let S={r:{},x:[],who:''};try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)))}catch(e){}
+let storeBad=false,storeWarnT=0;
+function storeFail(){storeBad=true;const n=Date.now();if(n-storeWarnT<15000)return;storeWarnT=n;try{toast('Uložení do telefonu selhalo. Nejdřív ulož zálohu (karta Souhrn).',7000)}catch(e){}}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));storeBad=false;return true}catch(e){storeFail();return false}};
+const CK='inv-cfg-v1';let C={snd:true,vib:true,fs:1,bs:1,cs:1,fm:['code_128','code_39','ean_13','ean_8','itf','codabar','qr_code'],ar:'band',cf:2,val:true,vol:.6,theme:'dark',accent:'daikin',uni:false,stick:true,zf:false,dir:'Download/Inventura',wake:true,bkOn:true,bkN:20,bkM:60,auto:false,bkQuit:true,ut:6,cam:'m',group:4,showO:true,showAll:true,showB:false};try{C=Object.assign(C,JSON.parse(localStorage.getItem(CK)))}catch(e){}
+for(const k of ['fs','bs','cs']){C[k]=Math.min(1.3,Math.max(.7,+C[k]||1))}
+if(!Array.isArray(C.fm)||!C.fm.length)C.fm=['code_128','code_39','ean_13','ean_8','itf','codabar','qr_code'];
+if(!Number.isInteger(+C.group)||+C.group<0||+C.group>12)C.group=4; C.group=+C.group;
+const saveC=()=>{try{localStorage.setItem(CK,JSON.stringify(C));return true}catch(e){storeFail();return false}};
+// Barvy tlačítek a zvýraznění: [název, světlý motiv, tmavý motiv]. Barvu textu na tlačítku vybere program podle jasu.
+const ACC={daikin:['Daikin modrá','#0097E0','#0097E0'],grey:['Šedá','#6B7686','#8D99AB'],purple:['Fialová','#6A3FA0','#A57BE0'],red:['Červená','#C62828','#E8554B'],orange:['Oranžová','#EF6C00','#FF9A2E'],yellow:['Žlutá','#FFC400','#FFC400'],green:['Zelená','#1F8F52','#3DBE78'],lblue:['Světlá modrá','#4FC3F7','#4FC3F7']};
+if(!C.accV){C.accent='daikin';C.accV=1}
+if(C.accent==='burgundy')C.accent='purple';
+if(!ACC[C.accent])C.accent='daikin';
+function onCol(h){const n=parseInt(h.slice(1),16),f=x=>{x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4)};const L=.2126*f(n>>16&255)+.7152*f(n>>8&255)+.0722*f(n&255);return L>.21?'#14213D':'#FFFFFF'}
+function applyTheme(){
+ const de=document.documentElement;
+ const dark=C.theme==='dark';
+ de.setAttribute('data-theme',dark?'dark':'light');de.setAttribute('data-uni',C.uni?'1':'0');
+ {const a=ACC[C.accent]||ACC.daikin,h=dark?a[2]:a[1];de.style.setProperty('--acc',h);de.style.setProperty('--on',onCol(h))}
+ const m=document.querySelector('meta[name=theme-color]');
+ if(m)m.setAttribute('content',dark?'#0E1420':'#14213D');
+}
+function applyCfg(){const de=document.documentElement,st=de.style;applyTheme();st.setProperty('--fs',C.fs);st.setProperty('--bs',C.bs);st.setProperty('--cs',C.cs);st.setProperty('--camh',({s:'240px',m:'340px',l:'min(58vh,480px)'})[C.cam]||'340px')}
+applyCfg();
+let SK=[],SRC=null,SHN='',HR=0,RO=0,CO=0,WB,WS,COL={},D=[],locs=[],FN='',v={by:'o',sf:'',sn:'',tab:'home',loc:null,it:null,sc:false,res:null,q:0,f:'',fs:false,rs:false},tt;
+
+const stat=d=>{const r=S.r[d.k];if(!r)return 'c';if(r.s==='m')return 'm';if(d.q>1&&(r.q||0)<d.q)return 'p';return 'f'};
+const isDone=d=>{const s=stat(d);return s==='f'||s==='m'};
+const waiting=d=>{const s=stat(d);return s==='c'||s==='p'};
+const st=id=>S.r[id]&&S.r[id].s;
+const ALL_LOC='__ALL_ASSETS__';const inLoc=l=>l==null||l===ALL_LOC?D:D.filter(d=>d[v.by]===l);
+const grp=()=>[...new Set(D.map(d=>d[v.by]))].sort();
+// Které volby (Podle osob / Vše / Podle budov) se zobrazují na hlavní obrazovce
+const showGrp=()=>v.by==='o'?C.showO:C.showB;
+function normView(){
+ if(!C.showO&&!C.showAll&&!C.showB)C.showO=true;
+ if(v.by==='o'&&!C.showO&&C.showB)v.by='b';
+ else if(v.by==='b'&&!C.showB&&C.showO)v.by='o';
+ if(S.by&&S.by!==v.by){S.by=v.by;save()}
+ if(v.loc===ALL_LOC){if(!C.showAll)v.loc=null}
+ else if(v.loc&&!showGrp())v.loc=null;
+}
+if(S.by==='o'||S.by==='b')v.by=S.by;
+normView();
+function viewBar(){
+ const b=[];
+ if(C.showO)b.push('<button class="btn '+(v.by==='o'?'pri':'')+'" onclick="setBy(\'o\')">Podle osob</button>');
+ if(C.showAll)b.push('<button class="btn" onclick="goAll()">Vše ('+D.length+')</button>');
+ if(C.showB)b.push('<button class="btn '+(v.by==='b'?'pri':'')+'" onclick="setBy(\'b\')">Podle budov</button>');
+ if(b.length===1&&!C.showAll)return '';
+ return '<div class="three" style="grid-template-columns:repeat('+b.length+',minmax(0,1fr))">'+b.join('')+'</div>'}
+const noGrpHint=()=>showGrp()?'':'<p class="mut">Seznam skupin je vypnutý. Klepni na Vše, nebo zapni Podle osob či Podle budov v Nastavení.</p>';
+function setView(k,el){
+ const n=(C.showO?1:0)+(C.showAll?1:0)+(C.showB?1:0);
+ if(!el.checked&&n<=1&&C[k]){el.checked=true;toast('Musí zůstat zapnutá aspoň jedna volba');return}
+ C[k]=el.checked;saveC();normView()}
+function setBy(b){v.by=b;S.by=b;save();render()}
+const done=l=>inLoc(l).filter(d=>isDone(d)).length;
+const bar=(a,b)=>'<div class="bar"><i style="width:'+(b?a/b*100:0)+'%"></i></div>';
+// const pill=d=>{const s=stat(d);return s==='f'?'<span class="pill f">Nalezeno</span>':s==='m'?'<span class="pill m">Nenalezeno</span>':s==='p'?'<span class="pill m">Nedokončeno</span>':'<span class="pill">Zbývá</span>'};
+const pill=d=>{const s=stat(d);return s==='f'?'<span class="pill f">Nalezeno</span>':s==='m'?'<span class="pill m">Nenalezeno</span>':s==='p'?'<span class="pill m">Nedokončeno</span>':'<span class="pill"></span>'};
+function toast(m,ms){const t=$('toast');t.classList.remove('act');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),ms||2500)}
+async function pick(e){const f=e.target.files[0];if(!f)return;
+ try{const buf=await f.arrayBuffer(),prev=D.length?await idbGet('file'):null,oldKeys=Object.keys(S.r);
+  if(load(buf,f.name)){if(D.length)idbSet('file',{buf,name:f.name});checkNew(oldKeys,prev)}
+ }catch(x){toast('Soubor se nepodařilo přečíst')}e.target.value=''}
+// Kontrola: sedí uložené výsledky k číslům v nově načteném souboru?
+function checkNew(oldKeys,prev){
+ const nk=new Set(D.map(d=>d.k)),m=oldKeys.filter(k=>nk.has(k)).length;
+ if(!oldKeys.length||m===oldKeys.length)return;
+ v.nf={total:oldKeys.length,match:m,x:S.x.length,prev,name:FN};render()}
+function nfKeep(){v.nf=null;render();toast('Výsledky zachovány')}
+function nfDel(){S.x.forEach(delXPhotos);S.r={};S.cf={};S.x=[];S.log=[];S.t0=0;S.bk=null;save();v.nf=null;render();toast('Výsledky smazány, můžeš začít znovu')}
+function nfCancel(){const p=v.nf&&v.nf.prev;v.nf=null;
+ if(p&&p.buf){load(p.buf,p.name);idbSet('file',p);toast('Načtení zrušeno, vrácen původní soubor')}
+ else{D=[];FN='';v.loc=null;idbDel('file');render();toast('Načtení zrušeno')}}
+function sheetNew(){const n=v.nf,bad=n.total-n.match;
+ return '<div class="scrim"><div class="sheet" role="alertdialog" aria-label="Výsledky nesedí k novému souboru"><div class="hd"><h2>Výsledky nesedí k souboru</h2></div><p>V telefonu je uloženo <b>'+n.total+'</b> záznamů o položkách a <b>'+n.x+'</b> přebytků. V souboru <b>'+esc(n.name)+'</b> odpovídá majetkovým číslům <b>'+n.match+'</b> záznamů, zbývajících <b>'+bad+'</b> k žádné položce nepatří.'+(n.match===0?' Vypadá to, že jde o jinou inventuru.':'')+'</p><button class="btn" onclick="backup()">Nejdřív uložit zálohu (JSON)</button><button class="btn pri" style="margin-top:10px" onclick="nfKeep()">Zachovat výsledky</button><p class="mut sm">Záznamy, které k souboru nepatří, zůstanou uložené, ale nezobrazí se u žádné položky.</p><button class="btn bad" onclick="nfDel()">Smazat výsledky a začít znovu</button><p class="mut sm">Smaže všech '+n.total+' záznamů i přebytky. Akci nelze vrátit.</p><button class="btn" onclick="nfCancel()">Zrušit načtení souboru</button></div></div>'}
+function load(buf,name){
+ WB=XLSX.read(buf,{type:'array'});const sn=WB.SheetNames.find(n=>/inventory/i.test(n))||WB.SheetNames[0];WS=WB.Sheets[sn];SRC=buf;SHN=sn;{const rg=XLSX.utils.decode_range(WS['!ref']||'A1');RO=rg.s.r;CO=rg.s.c}
+ const A=XLSX.utils.sheet_to_json(WS,{header:1,defval:'',raw:true});
+ const hr=A.findIndex(r=>r.some(c=>norm(c).toLowerCase().startsWith('majetkové č')));
+ if(hr<0){toast('V souboru chybí sloupec Majetkové číslo');return false}HR=hr;
+ const H=A[hr].map(c=>norm(c).toLowerCase()),f=re=>H.findIndex(h=>re.test(h));
+ COL={id:f(/^majetkové č/),p:f(/^popis$/),d:f(/^další popis/),sn:f(/^výrobní/),q:f(/^množství/),u:f(/^detail umíst/),b:f(/^budova/),o:f(/^odpovědn/),ks:f(/^ks$/),lab:f(/^štítek/),st:f(/inven.*stav/),use:f(/používán/),nt:f(/^interní pozn/),dt:f(/^datum inventury/),by:f(/^inventuru prov/),note:f(/^poznámky/)};
+ D=[];let skipped=0;SK=[];const seen={};A.forEach((r,i)=>{
+  if(i<=hr)return;
+  let rawId = r[COL.id];
+  if(rawId==null) return;
+  let id = idText(rawId);
+  if(!id) return;
+  if(!/^\d{6,}$/.test(id)){skipped++;SK.push({r:i+1+RO,id,p:norm(r[COL.p])});return}
+  const idCellKey = XLSX.utils.encode_cell({r:i, c:COL.id});
+  if(WS[idCellKey]) {
+   WS[idCellKey].t = 's';
+   WS[idCellKey].v = id;
+   WS[idCellKey].w = id;
+   WS[idCellKey].z = '@';
+  }
+  seen[id]=(seen[id]||0)+1;
+  D.push({id,k:seen[id]>1?id+'~'+seen[id]:id,dn:seen[id],p:norm(r[COL.p]),d:norm(r[COL.d]),sn:norm(r[COL.sn]),u:norm(r[COL.u]),q:Number(r[COL.q])||1,ks:norm(r[COL.ks]),o:norm(r[COL.o])||'(bez osoby)',b:norm(r[COL.b])||'(bez budovy)',n:norm(r[COL.nt]),note:COL.note>=0?norm(r[COL.note]):'',ri:i})
+ });
+ const cnt={};D.forEach(d=>{cnt[d.id]=(cnt[d.id]||0)+1});D.forEach(d=>{d.dc=cnt[d.id]});const dups=Object.values(cnt).filter(n=>n>1).length;
+ FN=name;v.loc=null;v.tab='home';render();toast('Načteno položek: '+D.length+(skipped?' (přeskočeno řádků bez čísla: '+skipped+')':'')+(dups?' · čísel vícekrát: '+dups:''));return true}
+
+const idb=()=>new Promise((ok,no)=>{const q=indexedDB.open('inventura',1);q.onupgradeneeded=()=>q.result.createObjectStore('f');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});
+const idbSet=async(k,val)=>{const d=await idb();try{await new Promise((ok,no)=>{const t=d.transaction('f','readwrite');t.objectStore('f').put(val,k);t.oncomplete=ok;t.onerror=()=>no(t.error);t.onabort=()=>no(t.error||new Error('IndexedDB transaction aborted'))})}finally{d.close()}};
+const idbSetMany=async(items)=>{if(!items.length)return;const d=await idb();try{await new Promise((ok,no)=>{const t=d.transaction('f','readwrite'),o=t.objectStore('f');for(const [k,val] of items)o.put(val,k);t.oncomplete=ok;t.onerror=()=>no(t.error);t.onabort=()=>no(t.error||new Error('IndexedDB transaction aborted'))})}finally{d.close()}};
+const idbGet=async k=>{try{const d=await idb();return await new Promise((ok,no)=>{const q=d.transaction('f').objectStore('f').get(k);q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})}catch(e){return null}};
+
+// ===== Ukládání souborů: v APK do složky telefonu, v počítači do vybrané složky, jinak běžné stažení =====
+const DIR_DEF='Download/Inventura';
+const hasNat=m=>{try{return !!(window.Android&&typeof window.Android[m]==='function')}catch(e){return false}};
+const canPickDir=()=>typeof window.showDirectoryPicker==='function'&&!hasNat('saveFile');
+const cleanDir=p=>String(p||'').replace(/\\/g,'/').split('/').map(x=>x.trim().replace(/[<>:"|?*\u0000-\u001f]/g,'')).filter(x=>x&&x!=='.'&&x!=='..').join('/').replace(/^downloads?(?=\/|$)/i,'Download');
+let dirHandle=null;
+idbGet('dir').then(h=>{if(h&&typeof h==='object'){dirHandle=h;if(v.tab==='set'&&!v.it&&!v.sc&&!v.hist)render()}});
+// Vrací false při chybě, text s cestou při přesném uložení, jinak true
+async function saveFile(blob,name,auto){
+ const dir=cleanDir(C.dir);
+ if(hasNat('saveFile')||hasNat('saveFileTo')){
+  const url=await blobUrl(blob);if(!url)return false;
+  try{
+   if(hasNat('saveFileTo')&&/^Download(\/|$)/.test(dir)){
+    const r=String(Android.saveFileTo(name,url,dir));
+    if(r.indexOf('OK:')===0)return r.slice(3);
+    if(r==='PICKER')return auto?false:true;
+    return false}
+   if(auto)return false;
+   Android.saveFile(name,url);return true
+  }catch(e){return false}}
+ if(dirHandle&&canPickDir()){
+  try{let p=await dirHandle.queryPermission({mode:'readwrite'});if(p!=='granted')p=await dirHandle.requestPermission({mode:'readwrite'});
+   if(p==='granted'){const fh=await dirHandle.getFileHandle(name,{create:true}),w=await fh.createWritable();await w.write(blob);await w.close();return dirHandle.name+'/'+name}}catch(e){}}
+ try{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();return true}catch(e){return false}}
+function dirNote(){
+ if(hasNat('saveFileTo'))return 'Cesta musí začínat Download/. Při prázdné nebo jiné cestě se otevře okno Uložit jako.';
+ if(hasNat('saveFile'))return 'Tato verze aplikace se při každém uložení zeptá na složku. Přímé ukládání bude po sestavení nového APK.';
+ if(canPickDir())return 'Vyber podsložku, například Stažené soubory/Inventura (v okně výběru tlačítko Nová složka). Samotné Stažené soubory, Dokumenty ani Plochu Chrome nepovolí.';
+ return 'Prohlížeč ukládá soubory do své složky stahování.'}
+function phonePath(){const d=cleanDir(C.dir);if(!/^Download(\/|$)/.test(d))return 'okno Uložit jako (složku vybereš sám)';const p=d.split('/');if(p.length===1)return 'Stažené soubory (Download)';p[0]='Stažené soubory';return p.join(' › ')+' ('+d+')'}
+function setDir(x){C.dir=cleanDir(x);saveC();const e=$('dir');if(e)e.value=C.dir;
+ if(hasNat('saveFileTo')&&C.dir&&!/^Download(\/|$)/.test(C.dir))toast('Přímo lze ukládat jen do Download/… Jiná cesta znamená okno Uložit jako.')}
+function resetDir(){C.dir=DIR_DEF;saveC();if(canPickDir()){dirHandle=null;idbSet('dir',null)}render();toast('Výchozí nastavení složky obnoveno')}
+async function pickDir(){try{const h=await window.showDirectoryPicker({id:'inventura',mode:'readwrite',startIn:'downloads'});dirHandle=h;await idbSet('dir',h);render();toast('Složka vybrána: '+h.name)}catch(e){}}
+// Počítá všechny záznamy změněné po poslední záloze (i opravy už zapsaných položek a přidané fotky)
+const unsaved=()=>{const t0=S.bk?S.bk.t:0;let n=0;for(const k in S.r){const r=S.r[k];if(r&&(r.t||0)>t0)n++}for(const x of S.x)if(((x.mt||x.t)||0)>t0)n++;return n};
+const markSaved=()=>{S.bk={t:Date.now(),n:D.filter(isDone).length,x:S.x.length};save()};
+const bkInfo=()=>S.bk?'Poslední záloha nebo export: '+new Date(S.bk.t).toLocaleString('cs-CZ')+'. Od té doby zpracováno '+unsaved()+' položek.':'Záloha zatím nebyla uložena.';
+const blobUrl=b=>new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>ok(null);r.readAsDataURL(b)});
+async function backup(auto){
+ const ph={};
+ for(const x of S.x){for(const k of photoKeys(x)){try{const b=await idbGet('ph'+k);const u=b&&await blobUrl(b);if(u)ph[k]=u}catch(e){}}}
+ const o={app:'inventura',ver:1,saved:new Date().toISOString(),file:FN,who:S.who||'',r:S.r,x:S.x,ph};
+ const where=await saveFile(new Blob([JSON.stringify(o)],{type:'application/json'}),'Inventura_zaloha_'+(norm(S.who)?norm(S.who).replace(/[^\p{L}\p{N}]+/gu,'_')+'_':'')+new Date().toISOString().slice(0,16).replace(/[-:T]/g,'')+'.json',auto);
+ if(where===false){if(!auto)toast('Zálohu se nepodařilo uložit');return}
+ markSaved();if(!auto||(!v.sc&&!v.it))render();if(!auto)toast('Záloha uložena'+(typeof where==='string'?': '+where:''))}
+const nm=x=>norm(x).toLowerCase();
+// Starším záznamům bez autora se přiřadí aktuální jméno z tohoto telefonu
+function tagAuth(){if(!norm(S.who))return;let ch=false;for(const r of Object.values(S.r))if(!r.by){r.by=S.who;ch=true}for(const x of S.x)if(!x.by){x.by=S.who;ch=true}if(ch)save()}
+const rsig=r=>JSON.stringify([r.s,r.q,!!r.lab,!!r.inv,!!r.use,r.nl,r.ni,r.nu]);
+function mergeRes(o){let nw=0,up=0,same=0,nx=0,cf=0;tagAuth();const ow=norm(o.who);S.cf=S.cf||{};
+ for(const [id,r0] of Object.entries(o.r||{})){const r={...r0};if(!r.by)r.by=ow;const c=S.r[id];
+  if(!c){S.r[id]=r;nw++}
+  else if(rsig(c)===rsig(r))same++;
+  else if(nm(c.by)===nm(r.by)){if((r.t||0)>(c.t||0)){S.r[id]=r;up++}else same++}
+  else{const l=S.cf[id]=S.cf[id]||[];if(!l.length)l.push({...c});if(!l.some(z=>nm(z.by)===nm(r.by)&&rsig(z)===rsig(r))){l.push(r);cf++}}}
+ for(const x0 of (o.x||[])){const x={...x0};if(!x.by)x.by=ow;if(!S.x.some(y=>y.n===x.n&&y.g===x.g&&y.t===x.t)){S.x.push(x);nx++}}
+ return {nw,up,same,nx,cf}}
+function confl(){const ids=Object.keys(S.cf||{}).filter(k=>S.cf[k]&&S.cf[k].length>1&&D.some(d=>d.k===k));if(!ids.length)return '';
+ return '<h2>Konflikty ('+ids.length+')</h2><p class="mut sm">Stejnou položku zapsalo víc lidí odlišně. Vyber verzi, která platí. Dokud konflikt nevyřešíš, položka se do exportu nezapíše.</p>'+ids.map(k=>{const d=D.find(x=>x.k===k);
+  return '<div class="row" style="cursor:default"><span class="num idn span2">'+esc(fmt(d.id))+'</span><span class="span2">'+esc(d.p)+'</span>'+S.cf[k].map((r,i)=>{const st=r.s==='m'?'m':(d.q>1&&(r.q||0)<d.q)?'p':'f',nmz=r.by||'bez jména';
+   return '<span class="span2"><b>'+esc(nmz)+'</b>: '+STX[st]+(d.q>1?' ('+(r.q||0)+' z '+d.q+' ks)':'')+(r.nt?', '+esc(r.nt):'')+' · '+new Date(r.t||0).toLocaleString('cs-CZ')+'</span><span class="span2"><button class="btn" data-k="'+esc(k)+'" onclick="pickCf(this.dataset.k,'+i+')">Použít verzi: '+esc(nmz)+'</button></span>'}).join('')+'</div>'}).join('')}
+function pickCf(k,i){const r=S.cf&&S.cf[k]&&S.cf[k][i];if(!r)return;S.r[k]=r;delete S.cf[k];save();render();toast('Konflikt vyřešen')}
+async function restore(e){const f=e.target.files[0];if(!f)return;
+ try{const o=JSON.parse(await f.text());if(o.app!=='inventura'||!o.r)throw 0;const m=mergeRes(o);for(const [t,u] of Object.entries(o.ph||{})){try{if(!(await idbGet('ph'+t)))await idbSet('ph'+t,await (await fetch(u)).blob())}catch(x){}}save();render();
+  toast('Sloučeno: nové '+m.nw+', novější '+m.up+', beze změny '+m.same+', přebytky '+m.nx+(m.cf?', KONFLIKTY '+m.cf+' (řeš v Souhrnu)':''))}catch(x){toast('Soubor zálohy se nepodařilo přečíst')}e.target.value=''}
+
+// Vylepšené pípnutí a haptika s rozlišením stavů (typ: 'ok', 'warn', 'bad')
+let AC=null;
+function audio(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state!=='running')AC.resume();return AC}
+// Prohlížeč pustí zvuk až po dotyku uživatele. Kontext se proto odemkne prvním klepnutím a pak ho využívá i kamera.
+['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(C.snd){try{audio()}catch(x){}}},{passive:true}));
+function tone(a,f,t0,dur,vol){const o=a.createOscillator(),g=a.createGain();o.type='square';o.frequency.setValueAtTime(f,t0);
+ g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+.01);g.gain.setValueAtTime(vol,t0+dur-.02);g.gain.linearRampToValueAtTime(0,t0+dur);
+ o.connect(g);g.connect(a.destination);o.start(t0);o.stop(t0+dur+.02)}
+function beep(type='ok',nv){
+ try{if(!nv&&C.vib&&navigator.vibrate){if(type==='ok')navigator.vibrate(60);else navigator.vibrate([40,60,40])}}catch(e){}
+ if(!C.snd)return;
+ try{const a=audio(),t=a.currentTime+.02,vol=(C.vol==null?.6:C.vol)*.35;
+  if(type==='ok')tone(a,880,t,.14,vol);
+  else{tone(a,440,t,.14,vol);tone(a,330,t+.17,.18,vol)}
+ }catch(e){}
+}
+
+const mcNote=(d,r)=>{if(!(d.q>1)||r.nl==null||!r.q)return '';return [['Štítek',r.nl],['Inventární stav',r.ni],['Používá se',r.nu]].filter(a=>a[1]<r.q).map(a=>a[0]+' '+a[1]+'/'+r.q).join('; ')};
+const STX={f:'nalezeno',m:'nenalezeno',p:'částečně',c:'nezpracováno'};
+function dupNote(d){if(!(d.dc>1))return '';const o=D.filter(x=>x.id===d.id&&x!==d).map(x=>'ř. '+(x.ri+1)+' '+STX[stat(x)]).join(', ');return 'Duplicitní číslo '+d.dn+'/'+d.dc+(stat(d)==='c'?' (nespárováno)':' (spárováno)')+'; ostatní řádky: '+o}
+// ===== Zápis výsledků přímo do původního xlsx: upraví se jen XML buněk, formátování zůstane =====
+const xpTD=new TextDecoder(),xpTE=new TextEncoder();
+const xpCrcT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function xpCrc(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=xpCrcT[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+async function xpInflate(u8){const ds=new DecompressionStream('deflate-raw'),w=ds.writable.getWriter();w.write(u8);w.close();return new Uint8Array(await new Response(ds.readable).arrayBuffer())}
+function xpUnzip(buf){const u=buf instanceof Uint8Array?buf:new Uint8Array(buf),dv=new DataView(u.buffer,u.byteOffset,u.byteLength);
+ let e=u.length-22;while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;if(e<0)throw new Error('zip: konec nenalezen');
+ const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const ents=[];
+ for(let i=0;i<n;i++){if(dv.getUint32(p,true)!==0x02014b50)throw new Error('zip: adresář');
+  const fl=dv.getUint16(p+8,true),me=dv.getUint16(p+10,true),tm=dv.getUint16(p+12,true),dt=dv.getUint16(p+14,true),crc=dv.getUint32(p+16,true),cs=dv.getUint32(p+20,true),us=dv.getUint32(p+24,true),nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+  if(cs===0xFFFFFFFF||us===0xFFFFFFFF||lo===0xFFFFFFFF)throw new Error('zip64');
+  const nb=u.slice(p+46,p+46+nl),name=xpTD.decode(nb),ds=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true);
+  ents.push({name,nb,fl,me,tm,dt,crc,cs,us,raw:u.subarray(ds,ds+cs)});p+=46+nl+el+cl}
+ return ents}
+function xpZip(ents,mime){const parts=[],cd=[];let off=0;
+ for(const e of ents){const fl=e.fl&0x0800,lh=new Uint8Array(30+e.nb.length),dv=new DataView(lh.buffer);
+  dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(6,fl,true);dv.setUint16(8,e.me,true);dv.setUint16(10,e.tm,true);dv.setUint16(12,e.dt,true);dv.setUint32(14,e.crc,true);dv.setUint32(18,e.cs,true);dv.setUint32(22,e.us,true);dv.setUint16(26,e.nb.length,true);lh.set(e.nb,30);
+  const ch=new Uint8Array(46+e.nb.length),cv=new DataView(ch.buffer);
+  cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,fl,true);cv.setUint16(10,e.me,true);cv.setUint16(12,e.tm,true);cv.setUint16(14,e.dt,true);cv.setUint32(16,e.crc,true);cv.setUint32(20,e.cs,true);cv.setUint32(24,e.us,true);cv.setUint16(28,e.nb.length,true);cv.setUint32(42,off,true);ch.set(e.nb,46);
+  parts.push(lh,e.raw);cd.push(ch);off+=lh.length+e.raw.length}
+ let cds=0;for(const c of cd)cds+=c.length;
+ const end=new Uint8Array(22),ev=new DataView(end.buffer);ev.setUint32(0,0x06054b50,true);ev.setUint16(8,ents.length,true);ev.setUint16(10,ents.length,true);ev.setUint32(12,cds,true);ev.setUint32(16,off,true);
+ return new Blob([...parts,...cd,end],{type:mime||'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+const xpBin=(name,b)=>({name,nb:xpTE.encode(name),fl:0x800,me:0,tm:0,dt:33,crc:xpCrc(b),cs:b.length,us:b.length,raw:b});
+const xpEnt=(name,str)=>{const b=xpTE.encode(str);return {name,nb:xpTE.encode(name),fl:0x800,me:0,tm:0,dt:33,crc:xpCrc(b),cs:b.length,us:b.length,raw:b}};
+const xpXe=s=>String(s==null?'':s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const xpUn=s=>String(s).replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
+const xpCol=n=>{let s='';n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s};
+const xpColI=s=>{let n=0;for(const ch of s)n=n*26+ch.charCodeAt(0)-64;return n-1};
+// Styly: potřebujeme formát data u buněk s datem a tučné písmo v hlavičce nových listů
+function xpStyles(xml){
+ const m=/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/.exec(xml);if(!m)throw new Error('styles: cellXfs');
+ const st={xml,xfs:m[1].match(/<xf\b[^>]*?(?:\/>|>[\s\S]*?<\/xf>)/g)||[],cache:{},fmts:{},dirty:false};
+ {const re=/<numFmt\b[^>]*?numFmtId="(\d+)"[^>]*?formatCode="([^"]*)"/g;let q;while((q=re.exec(xml)))st.fmts[q[1]]=q[2]}
+ const base0='<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>';
+ st.add=x=>{st.xfs.push(x);st.dirty=true;return st.xfs.length-1};
+ st.isDate=s=>{const x=st.xfs[s==null?0:s];if(!x)return false;const id=+((/numFmtId="(\d+)"/.exec(x)||[])[1]||0);return (id>=14&&id<=22)||(id>=45&&id<=47)||(id>=164&&/[dy]/i.test(st.fmts[id]||''))};
+ st.dateOf=s=>{const k=s==null?'n':s;if(st.cache[k]!=null)return st.cache[k];if(st.isDate(s))return st.cache[k]=(s==null?0:s);
+  const b=st.xfs[s==null?0:s]||base0;
+  return st.cache[k]=st.add(b.replace(/\snumFmtId="\d+"/,'').replace(/\sapplyNumberFormat="\d"/,'').replace(/^<xf\b/,'<xf numFmtId="14" applyNumberFormat="1"'))};
+ st.bold=()=>{if(st.cache.b!=null)return st.cache.b;const fm=/(<fonts\b[^>]*?count=")(\d+)("[^>]*>)/.exec(st.xml);if(!fm)throw new Error('styles: fonts');
+  const id=+fm[2];st.xml=st.xml.replace(fm[0],fm[1]+(id+1)+fm[3]).replace('</fonts>','<font><b/><sz val="11"/><name val="Calibri"/></font></fonts>');
+  return st.cache.b=st.add('<xf numFmtId="0" fontId="'+id+'" fillId="0" borderId="0" xfId="0" applyFont="1"/>')};
+ st.out=()=>st.xml.replace(/(<cellXfs\b[^>]*?)count="\d+"([^>]*>)[\s\S]*?<\/cellXfs>/,(a,p,q)=>p+'count="'+st.xfs.length+'"'+q+st.xfs.join('')+'</cellXfs>');
+ return st}
+// Úprava existujícího listu: upd = [{ri,c,k:'s'|'d',v}], ri = číslo řádku od 0, c = sloupec od 0, hr = řádek hlavičky od 0
+function xpPatch(xml,upd,hr,st){
+ const byRow=new Map();for(const u of upd){let m=byRow.get(u.ri);if(!m)byRow.set(u.ri,m=new Map());m.set(u.c,u)}
+ const cellRe=/<c\b[^>]*?(?:\/>|>[\s\S]*?<\/c>)/g,rowRe=/<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g,colS={};
+ xml.replace(rowRe,(mm,attrs,inner)=>{const rn=+((/\br="(\d+)"/.exec(attrs)||[])[1]||0);if(rn-1<=hr)return mm;
+  for(const x of (inner||'').match(cellRe)||[]){const s=/\bs="(\d+)"/.exec(x),c=/\br="([A-Z]+)\d+"/.exec(x);if(s&&c){const ci=xpColI(c[1]);if(colS[ci]==null)colS[ci]=+s[1]}}return mm});
+ const seen=new Set();
+ xml=xml.replace(rowRe,(mm,attrs,inner)=>{const rn=+((/\br="(\d+)"/.exec(attrs)||[])[1]||0),mp=byRow.get(rn-1);if(!mp)return mm;seen.add(rn-1);
+  const arr=((inner||'').match(cellRe)||[]).map(x=>({c:xpColI((/\br="([A-Z]+)\d+"/.exec(x)||[,'A'])[1]),x}));
+  for(const [c,u] of mp){const old=arr.find(a=>a.c===c),os=old&&/\bs="(\d+)"/.exec(old.x),s=os?+os[1]:colS[c],ref=xpCol(c)+rn;let nx;
+   if(u.k==='d')nx='<c r="'+ref+'" s="'+st.dateOf(s)+'"><v>'+u.v+'</v></c>';
+   else if(u.v==='')nx='<c r="'+ref+'"'+(s!=null?' s="'+s+'"':'')+'/>';
+   else nx='<c r="'+ref+'"'+(s!=null?' s="'+s+'"':'')+' t="inlineStr"><is><t xml:space="preserve">'+xpXe(u.v)+'</t></is></c>';
+   if(old)old.x=nx;else arr.push({c,x:nx})}
+  arr.sort((a,b)=>a.c-b.c);
+  return '<row'+attrs.replace(/\sspans="[^"]*"/,'')+'>'+arr.map(a=>a.x).join('')+'</row>'});
+ for(const r of byRow.keys())if(!seen.has(r))throw new Error('řádek '+(r+1)+' v listu nenalezen');
+ return xml}
+// Nový list z tabulky textů a čísel (první řádek je hlavička)
+function xpSheetXml(rows,st){const hs=st.bold();let nc=1;rows.forEach(r=>{nc=Math.max(nc,r.length)});
+ const w=[];for(let j=0;j<nc;j++){let m=8;rows.forEach(r=>{m=Math.max(m,String(r[j]==null?'':r[j]).length+2)});w.push(Math.min(60,m))}
+ const sd=rows.map((r,i)=>'<row r="'+(i+1)+'">'+r.map((v,j)=>{if(v===''||v==null)return '';const ref=xpCol(j)+(i+1);
+  if(typeof v==='number'&&isFinite(v))return '<c r="'+ref+'"'+(i===0?' s="'+hs+'"':'')+'><v>'+v+'</v></c>';
+  return '<c r="'+ref+'"'+(i===0?' s="'+hs+'"':'')+' t="inlineStr"><is><t xml:space="preserve">'+xpXe(v)+'</t></is></c>'}).join('')+'</row>').join('');
+ return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:'+xpCol(nc-1)+Math.max(1,rows.length)+'"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>'+w.map((x,j)=>'<col min="'+(j+1)+'" max="'+(j+1)+'" width="'+x+'" customWidth="1"/>').join('')+'</cols><sheetData>'+sd+'</sheetData></worksheet>'}
+// o = {sheetName, upd, hr, sheets:{Název:[řádky]|null}, mime}
+async function xlsxPatch(src,o){
+ const ents=xpUnzip(src),get=n=>ents.find(e=>e.name===n);
+ const rd=async n=>{const e=get(n);if(!e)throw new Error('chybí '+n);if(e.me===0)return xpTD.decode(e.raw);if(e.me!==8)throw new Error('metoda '+e.me);return xpTD.decode(await xpInflate(e.raw))};
+ const put=(n,s)=>{const i=ents.findIndex(e=>e.name===n),ne=xpEnt(n,s);if(i>=0)ents[i]=ne;else ents.push(ne)};
+ let wb=await rd('xl/workbook.xml'),rels=await rd('xl/_rels/workbook.xml.rels'),ct=await rd('[Content_Types].xml');
+ const sheets=(wb.match(/<sheet\b[^>]*?\/>/g)||[]).map(t=>({name:xpUn((/\bname="([^"]*)"/.exec(t)||[,''])[1]),rid:(/\b\w+:id="([^"]*)"/.exec(t)||[])[1],sid:+((/\bsheetId="(\d+)"/.exec(t)||[,0])[1])}));
+ if(!sheets.length)throw new Error('žádné listy');
+ const px=(/\b(\w+):id="/.exec((wb.match(/<sheet\b[^>]*?\/>/)||[''])[0])||[,'r'])[1];
+ const pathOf=s=>{const re=/<Relationship\b[^>]*?\/>/g;let m;while((m=re.exec(rels))){if(new RegExp('\\bId="'+s.rid+'"').test(m[0])){const t=(/\bTarget="([^"]*)"/.exec(m[0])||[,''])[1];return t[0]==='/'?t.slice(1):'xl/'+t}}throw new Error('vazba listu')};
+ const st=xpStyles(await rd('xl/styles.xml'));
+ const ms=sheets.find(s=>s.name===o.sheetName);if(!ms)throw new Error('list '+o.sheetName+' nenalezen');
+ const mp=pathOf(ms);put(mp,xpPatch(await rd(mp),o.upd,o.hr,st));
+ let nn=0,nr=0;for(const e of ents){const m=/^xl\/worksheets\/sheet(\d+)\.xml$/.exec(e.name);if(m)nn=Math.max(nn,+m[1])}
+ {const re=/\bId="rId(\d+)"/g;let m;while((m=re.exec(rels)))nr=Math.max(nr,+m[1])}
+ let sid=Math.max(0,...sheets.map(s=>s.sid));
+ for(const [name,rows] of Object.entries(o.sheets||{})){if(!rows)continue;const ex=sheets.find(s=>s.name===name),xml=xpSheetXml(rows,st);
+  if(ex)put(pathOf(ex),xml);
+  else{nn++;nr++;sid++;const fn='xl/worksheets/sheet'+nn+'.xml';put(fn,xml);
+   wb=wb.replace('</sheets>','<sheet xmlns:'+px+'="http://schemas.openxmlformats.org/officeDocument/2006/relationships" name="'+xpXe(name)+'" sheetId="'+sid+'" '+px+':id="rId'+nr+'"/></sheets>');
+   rels=rels.replace('</Relationships>','<Relationship Id="rId'+nr+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+nn+'.xml"/></Relationships>');
+   ct=ct.replace('</Types>','<Override PartName="/'+fn+'" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>');
+   sheets.push({name,rid:'rId'+nr,sid})}}
+ put('xl/workbook.xml',wb);put('xl/_rels/workbook.xml.rels',rels);put('[Content_Types].xml',ct);
+ if(st.dirty)put('xl/styles.xml',st.out());
+ return xpZip(ents,o.mime)}
+
+async function exp(mode){
+ mode=mode==='all'?'all':'mine';const mineOnly=mode==='mine';
+ if(!norm(S.who)){toast('Nejdřív vyplň své jméno.');const w=$('who');if(w)w.focus();return}
+ tagAuth();
+ if(WB && WB.Workbook){delete WB.Workbook.Names;}
+ const me=nm(S.who),cfs=S.cf||{};
+ const U=[];
+ const serialOf=ts=>{const n=new Date(ts||Date.now());return Math.round(Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())/86400000)+25569},dtOf=ts=>new Date(ts||Date.now()).toLocaleDateString('cs-CZ');
+ const putD=(ri,c,ts)=>{if(c>=0){U.push({ri,c,k:'d',v:serialOf(ts)});WS[XLSX.utils.encode_cell({r:ri,c})]={t:'n',v:serialOf(ts),z:'dd.mm.yyyy'}}},put=(ri,c,val)=>{
+  if(c>=0){U.push({ri,c,k:'s',v:val});
+   const cellKey=XLSX.utils.encode_cell({r:ri,c});
+   if(!WS[cellKey]) WS[cellKey]={t:'s',v:val};
+   else { WS[cellKey].t='s'; WS[cellKey].v=val; delete WS[cellKey].w; }
+  }
+ },cellVal=(ri,c)=>{if(c<0)return '';const z=WS[XLSX.utils.encode_cell({r:ri,c})];return z&&z.v!=null?String(z.v).trim():''};
+ let wr=0,skCf=0,skOth=0;
+ D.forEach(d=>{const idKey=XLSX.utils.encode_cell({r:d.ri,c:COL.id});WS[idKey]={...(WS[idKey]||{}),t:'s',v:String(d.id),w:String(d.id),z:'@'};
+  const r=S.r[d.k];if(!r){if(!mineOnly&&d.dc>1)put(d.ri,COL.nt,[d.n,dupNote(d)].filter(Boolean).join('; '));return}
+  if(cfs[d.k]&&cfs[d.k].length>1){skCf++;return}
+  const au=r.by||S.who;
+  if(mineOnly){if(nm(au)!==me)return;const ex=cellVal(d.ri,COL.by);if(ex&&nm(ex)!==me){skOth++;return}}
+  const f=stat(d)==='f';
+  put(d.ri,COL.lab,f&&r.lab?'ANO':'NE');put(d.ri,COL.st,f&&r.inv?'ANO':'NE');put(d.ri,COL.use,f&&r.use?'ANO':'NE');
+  put(d.ri,COL.nt,[d.n,r.nt,r.lc?'Umístění: '+r.lc:'',r.q&&r.q!==d.q?'Napočteno: '+r.q:'',mcNote(d,r),dupNote(d)].filter(Boolean).join('; '));
+  putD(d.ri,COL.dt,r.t);put(d.ri,COL.by,au);wr++});
+ // List Prebytky: řádky autorů, které exportujeme, se nahradí; řádky ostatních lidí v souboru zůstanou
+ const xs=S.x.filter(x=>mineOnly?nm(x.by||S.who)===me:true);let old=[];const so=WB.Sheets['Prebytky'];
+ if(so){try{old=XLSX.utils.sheet_to_json(so,{header:1,defval:''}).slice(1).filter(r=>r.some(z=>String(z).trim()))}catch(e){old=[]}}
+ const aus=new Set(mineOnly?[me]:S.x.map(x=>nm(x.by||S.who)).concat(me));
+ const hX=['Číslo ze štítku','Popis','Budova','Provedl','Datum','Fotka','Osoba / budova skupiny','Počet fotek'];
+ const xrows=old.filter(r=>!aus.has(nm(r[3]))).concat(xs.map(x=>[x.n,x.p,x.l,x.by||S.who,dtOf(x.t),x.ph?'ANO (v záloze aplikace)':'',String(x.g||'').slice(1),photoKeys(x).length||'']));
+ const hD=['Majetkové číslo','Řádek v souboru','Popis','Výrobní číslo','Budova','Odpovědná osoba','Stav','Napočteno'];
+ const dr=mineOnly?[]:D.filter(d=>d.dc>1),drows=dr.map(d=>[d.id,d.ri+1,d.p,d.sn,d.b,d.o,STX[stat(d)],S.r[d.k]?S.r[d.k].q:'']);
+ // Hlavní cesta: výsledky se zapíšou přímo do původního souboru a jeho formátování zůstane
+ let out=null,patched=false;const macro=/\.xlsm$/i.test(FN);
+ try{
+  if(!SRC||typeof DecompressionStream==='undefined')throw new Error('nepodporováno');
+  out=await xlsxPatch(SRC,{sheetName:SHN,hr:HR+RO,upd:U.map(u=>({ri:u.ri+RO,c:u.c+CO,k:u.k,v:u.v})),
+   sheets:Object.assign({Prebytky:xrows.length?[hX].concat(xrows):(WB.Sheets['Prebytky']?[hX]:null)},mineOnly?{}:{Duplicity:drows.length?[hD].concat(drows):(WB.Sheets['Duplicity']?[hD]:null)}),
+   mime:macro?'application/vnd.ms-excel.sheet.macroEnabled.12':undefined});
+  patched=true}
+ catch(e){try{console.warn('Zápis do původního souboru se nepodařil:',e)}catch(x){}out=null}
+ // Záložní cesta: soubor se přegeneruje knihovnou, ta ale formátování buněk nezachová
+ if(!out){
+  if(WB.Sheets['Prebytky']){delete WB.Sheets['Prebytky'];WB.SheetNames=WB.SheetNames.filter(n=>n!=='Prebytky')}
+  if(xrows.length)XLSX.utils.book_append_sheet(WB,XLSX.utils.aoa_to_sheet([hX].concat(xrows)),'Prebytky');
+  if(!mineOnly){
+   if(WB.Sheets['Duplicity']){delete WB.Sheets['Duplicity'];WB.SheetNames=WB.SheetNames.filter(n=>n!=='Duplicity')}
+   if(drows.length)XLSX.utils.book_append_sheet(WB,XLSX.utils.aoa_to_sheet([hD].concat(drows)),'Duplicity')}
+  out=new Blob([XLSX.write(WB,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+ const day=new Date().toISOString().slice(0,10),
+  fn0=mineOnly?'Inventura_'+norm(S.who).replace(/[^\p{L}\p{N}]+/gu,'_')+'_'+day+'.xlsx':'Inventura_sloucene_'+day+'.xlsx',
+  fn=patched&&macro?fn0.replace(/\.xlsx$/,'.xlsm'):fn0;
+ const where=await saveFile(out,fn);
+ if(where===false){toast('Export se nepodařilo uložit');return}
+ markSaved();render();
+ toast('Export uložen'+(typeof where==='string'?' do '+where:'')+': '+wr+' řádků'+(skCf?', '.concat(skCf,' s konfliktem přeskočeno'):'')+(skOth?', '.concat(skOth,' už vyplnil někdo jiný'):'')+(patched?'':' · POZOR: formátování původního souboru se zachovat nepodařilo'),patched?3500:8000)}
+
+function pageHome(){
+ const offlineIndicator = '<span class="offline-dot" title="Aplikace připravena pro offline provoz"></span>';
+ if(!D.length)return '<header class="top"><h1>Inventura '+offlineIndicator+'</h1><p class="mut">Načti soubor s inventurou (xlsx) z telefonu nebo OneDrive. Data zůstanou jen v tomto telefonu.</p></header><input class="in" placeholder="Kdo provádí inventuru (tvoje jméno)" value="'+esc(S.who)+'" oninput="S.who=this.value;save()"><label class="btn pri" for="fi">Načíst soubor</label><input id="fi" type="file" accept=".xlsx,.xlsm" hidden onchange="pick(event)"><p class="mut sm">Soubor i výsledky se ukládají v tomto telefonu a po obnovení stránky se načtou samy.</p>';
+ const n=D.filter(d=>isDone(d)).length;
+ return '<header class="top"><h1>Inventura '+offlineIndicator+'</h1><p class="mut sm">'+esc(FN)+'</p>'+bar(n,D.length)+'<p class="mut sm">'+n+' z '+D.length+' položek hotovo</p>'+(storeBad?'<button class="btn bad" onclick="tabSum()">Uložení do telefonu selhalo. Uložit zálohu</button>':'')+(C.bkOn&&bkDue()?'<button class="btn bad" onclick="tabSum()">Bez zálohy: '+unsaved()+' položek. Uložit zálohu</button>':'')+viewBar()+'</header>'+
+ (showGrp()?grp():[]).map(l=>'<button class="row loc" data-l="'+esc(l)+'" onclick="go(this.dataset.l)"><b class="num big">'+esc(l)+'</b><span class="num big">'+done(l)+' / '+inLoc(l).length+'</span><span class="span2">'+bar(done(l),inLoc(l).length)+'</span></button>').join('')+noGrpHint()}
+
+const ju=u=>!u||/^pcs?$/i.test(u)?'ks':u;
+const noLab=d=>stat(d)==='f'&&!S.r[d.k].lab;
+const noInv=d=>stat(d)==='f'&&S.r[d.k].inv===false;
+const xs=()=>v.loc===ALL_LOC?S.x:S.x.filter(x=>x.g===v.by+v.loc);
+const stOk=d=>!v.sf||v.sf!=='x'&&(v.sf==='l'?!!noLab(d):v.sf==='k'?d.q>1:v.sf==='c'?waiting(d):stat(d)===v.sf);
+function fcount(f){const L=inLoc(v.loc);return f==='x'?xs().length:L.filter(d=>f==='l'?!!noLab(d):f==='k'?d.q>1:f==='c'?waiting(d):f?stat(d)===f:true).length}
+function setSf(x){v.sf=x;render()}
+function chips(){const c=fcount;
+ return '<div class="chips fchips" role="group" aria-label="Zobrazit">'+[['','Vše'],['c','Zbývá'],['k','Vícepoložkové'],['p','Nedokončeno'],['f','Nalezeno'],['m','Nenalezeno'],['x','Přebytek'],['l','Bez štítku']].filter(a=>a[0]===''||C.zf||v.sf===a[0]||c(a[0])>0).map(a=>!a?'<span class="br"></span>':'<button class="chip'+(v.sf===a[0]?' on':'')+'" onclick="setSf(\''+a[0]+'\')">'+a[1]+' <span class="cn">'+c(a[0])+'</span></button>').join('')+'<button class="chip" onclick="openHist()">Historie</button></div>'}
+function rows(){if(v.sf==='x')return xs().length?'':'<p class="mut">Žádný přebytek v tomto zobrazení.</p>';const q=v.f.toLowerCase(),qc=q.replace(/\s/g,'');let L=inLoc(v.loc).filter(stOk);if(q)L=L.filter(d=>(d.id+' '+d.p+' '+d.d+' '+d.sn).toLowerCase().includes(q)||String(d.id).replace(/\s/g,'').includes(qc));const m=L.length;if(!m)return '<p class="mut">Žádné položky v tomto zobrazení.</p>';
+ return L.slice(0,300).map(d=>{
+  const nl=noLab(d), ni=noInv(d), sd=stat(d), sClass='';
+  return '<button class="row '+sClass+'" onclick="openItem(\''+d.k+'\')"><span><span class="num idn">'+esc(fmt(d.id))+'</span> <span class="mut sm">Počet: <b>'+d.q+' '+esc(ju(d.ks))+'</b></span></span><span>'+pill(d)+(nl?' <span class="pill m">Štítek</span>':'')+(ni?' <span class="pill m">Inventura</span>':'')+(d.dc>1?' <span class="pill">Duplicita '+d.dn+'/'+d.dc+'</span>':'')+'</span><span class="span2">'+esc(d.p+(v.by==='o'?' · '+d.b:''))+'</span>'+(d.d&&d.d.toLowerCase()!==d.p.toLowerCase()?'<span class="span2 mut">'+esc(d.d)+'</span>':'')+'</button>';
+ }).join('')+(m>300?'<p class="mut sm">Zobrazeno 300 z '+m+', zúž hledání.</p>':'')}
+function pageLoc(){if(!C.zf&&v.sf&&fcount(v.sf)===0)v.sf='';
+ const allMode=v.loc===ALL_LOC,X=(v.sf==='x'||(v.sf===''&&!allMode))?xs():[],n=done(v.loc),t=inLoc(v.loc).length;
+ return '<header class="top"><div class="ttl"><button class="back" onclick="go(null)">‹ Inventura</button><span class="mut sm">'+n+' z '+t+' položek</span></div><h1>'+esc(allMode?'Celý majetek':v.loc)+'</h1>'+bar(n,t)+'<input id="fl" class="in" placeholder="Hledat číslo, popis, sériové číslo" value="'+esc(v.f)+'" oninput="handleSearchInput(this.value)">'+chips()+'</header><div id="lst">'+rows()+'</div>'+
+ X.map(x=>{const photos=photoKeys(x);return '<div class="row"><span class="num idn">'+esc(fmt(x.n))+'</span><span class="pill x">Přebytek</span><span class="span2">'+esc(x.p||'Bez popisu')+'</span><div class="span2 xphotos">'+photos.map(k=>'<img class="th'+(v.pd&&v.pd.t===x.t&&v.pd.sel.includes(k)?' sel':'')+'" data-ph="'+esc(k)+'" data-t="'+x.t+'" alt="Fotka přebytku" onclick="phClick(this)">').join('')+'</div>'+xBtns(x,photos.length)+'</div>'}).join('')+'<button class="btn pri fab" onclick="openScan()">Skenovat štítek</button>'}
+
+// Debounce pro vyhledávání (200 ms zpoždění pro plynulost na mobilu)
+let searchDebounceTimer;
+function handleSearchInput(val){
+ const el=$('fl');
+ // Při čistě číselném hledání zobrazovat stejné seskupení mezer jako u majetkových čísel.
+ if(el && /^[\d\s]*$/.test(val) && Number(C&&C.group)>0){
+  const digits=val.replace(/\s/g,'').replace(/\D/g,'');
+  const shown=digits?fmt(digits):'';
+  if(el.value!==shown){el.value=shown;try{el.setSelectionRange(shown.length,shown.length)}catch(e){}}
+  val=shown;
+ }
+ clearTimeout(searchDebounceTimer);
+ searchDebounceTimer = setTimeout(()=>{
+  v.f = val;
+  const lstEl = $('lst');
+  if(lstEl) lstEl.innerHTML = rows();
+ }, 200);
+}
+
+function setSn(x){v.sn=x;render()}
+// Klepnutí na dlaždici v Souhrnu: přepne na Inventuru s příslušným filtrem (u vybrané osoby jen její položky)
+function sumGo(f){
+ if(v.sn){v.by='o';S.by='o';save();v.loc=v.sn}else v.loc=ALL_LOC;
+ navTab('home');v.tab='home';v.sf=f;v.f='';render();scrollTo(0,0)}
+function pageSum(){
+ const P=[...new Set(D.map(d=>d.o))].sort();if(v.sn&&!P.includes(v.sn))v.sn='';
+ const L=v.sn?D.filter(d=>d.o===v.sn):D,
+  c=f=>L.filter(d=>f==='c'?waiting(d):f==='l'?!!noLab(d):stat(d)===f).length,
+  px=v.sn?S.x.filter(x=>x.g==='o'+v.sn).length:S.x.length;
+ return '<header class="top"><h1>SOUHRN</h1></header>'+confl()+
+ (D.length?'<label class="mut sm" for="psn">Filtrovat souhrn podle osoby z evidence:</label><select id="psn" class="in" onchange="setSn(this.value)"><option value="">Všechny osoby</option>'+P.map(p=>'<option value="'+esc(p)+'"'+(p===v.sn?' selected':'')+'>'+esc(p)+'</option>').join('')+'</select>':'')+
+ '<div class="grid4">'+[['Položek celkem',L.length,''],['Zbývá',c('c'),'c'],['Nalezeno',c('f'),'f'],['Nenalezeno',c('m'),'m'],['Přebytek',px,'x'],['Bez štítku',c('l'),'l']].map(a=>a[1]>0?'<button type="button" class="stat" onclick="sumGo(\''+a[2]+'\')"><b class="num">'+a[1]+'</b>'+a[0]+'</button>':'<div class="stat dim"><b class="num">'+a[1]+'</b>'+a[0]+'</div>').join('')+'</div>'+
+ (D.length?(v.sn?'<p class="mut sm">Přebytek = zapsaný při práci ve skupině této osoby (režim Podle osob).</p>':'')+'<label class="mut sm" for="who">Kdo provádí inventuru (zapíše se do sloupce Inventuru provedl):</label><input id="who" class="in" placeholder="Tvoje jméno" value="'+esc(S.who)+'" oninput="S.who=this.value;save()"><button class="btn pri" onclick="exp(\'mine\')">Exportovat jen moje změny (xlsx)</button><button class="btn" style="margin-top:10px" onclick="exp(\'all\')">Exportovat vše sloučené (xlsx)</button><label class="btn" style="margin-top:10px" for="fi2">Načíst jiný soubor</label><input id="fi2" type="file" accept=".xlsx,.xlsm" hidden onchange="pick(event)">'+(SK.length?'<button class="btn" style="margin-top:10px" onclick="showSkipped()">Přeskočené řádky ('+SK.length+')</button>':'')+'<p class="mut sm">Jen moje změny zapíše pouze řádky a přebytky, které zapsalo jméno uvedené výše, a nepřepíše řádky, které už vyplnil někdo jiný. Vše sloučené zapíše výsledky všech lidí ze sloučených záloh, každý řádek se jménem a datem jeho autora. Položky s nevyřešeným konfliktem se vždy přeskočí. Přebytky jdou na list Prebytky, duplicitní čísla (jen u Vše sloučené) na list Duplicity. Načtení jiného souboru nahradí seznam položek. Pokud k němu uložené výsledky nesedí, aplikace se zeptá, co s nimi.</p><h2>Záloha výsledků</h2><p class="mut sm">'+bkInfo()+' Zálohu lze načíst do jiného telefonu a výsledky se sloučí (stejnou položku zapsanou stejným člověkem nahradí novější záznam, odlišné zápisy různých lidí aplikace nepřepíše a nabídne je k rozhodnutí v Souhrnu).</p><button class="btn" onclick="backup()">Uložit zálohu (JSON)</button>'+(S.x.some(x=>photoKeys(x).length)?'<button class="btn" style="margin-top:10px" onclick="exportPhotos()">Uložit fotky přebytků (ZIP)</button>':'')+'<label class="btn" for="rf">Načíst nebo sloučit zálohu</label><input id="rf" type="file" accept=".json,application/json" hidden onchange="restore(event)">':'<p class="mut">Nejdřív načti soubor na kartě Inventura.</p>')+'<button class="btn" style="margin-top:10px" onclick="openHist()">Poslední zápisy a vrácení</button><button class="btn" style="margin-top:10px" onclick="reset()">Smazat výsledky</button>'}
+
+let camAuto=false,cameraOptions=[],cameraTestInfo='Kamery ještě nebyly otestovány.';
+function cameraErrorText(e){
+ const n=e&&e.name?e.name:'chyba';
+ const proto=String(location.protocol||'').toLowerCase();
+ if(proto==='content:'||proto==='file:'){
+  return 'Inventura je otevřená přímo jako lokální soubor ('+proto+'). Tento způsob otevření může Chromu zabránit v přístupu ke kameře, i když má Chrome oprávnění povolené. Otevři inventuru přes místní webový server (např. adresu 127.0.0.1) nebo přes HTTPS. Samotná změna objektivu tuto chybu nevyřeší. Technická chyba: '+n+'.';
+ }
+ if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+  return 'Prohlížeč nemůže otevřít kameru, protože stránka není v zabezpečeném kontextu nebo prohlížeč kameru nezpřístupňuje. Otevři inventuru přes HTTPS nebo místní důvěryhodnou adresu 127.0.0.1 v plném Google Chromu. Technická chyba: '+n+'.';
+ }
+ const m={
+  NotAllowedError:'Chrome zamítl přístup ke kameře. Ověř oprávnění Fotoaparát v Nastavení telefonu → Aplikace → Chrome → Oprávnění, přístup ke kameře v rychlém panelu Androidu a oprávnění stránky v Chromu. Pokud inventuru otevíráš jako content:// nebo file://, zkus ji otevřít přes místní server na 127.0.0.1.',
+  PermissionDeniedError:'Přístup ke kameře byl zamítnut. Zkontroluj oprávnění Fotoaparát pro Chrome v nastavení telefonu i oprávnění webu.',
+  NotFoundError:'Prohlížeč nenašel dostupnou kameru. Ověř, že telefon má kameru povolenou a že ji systém správně rozpoznává.',
+  NotReadableError:'Kameru se nepodařilo otevřít. Může ji používat jiná aplikace; zavři Fotoaparát a jiné aplikace používající kameru a zkus to znovu.',
+  OverconstrainedError:'Vybraná kamera nepodporuje požadované nastavení. V nastavení inventury zvol kameru Automaticky.',
+  SecurityError:'Přístup ke kameře zablokovalo bezpečnostní nastavení prohlížeče. Otevři stránku přes HTTPS a zkontroluj oprávnění webu.',
+  AbortError:'Spuštění kamery bylo přerušeno. Zavři skener, znovu otevři inventuru a zkus to znovu.'
+ };
+ return (m[n]||'Kameru se nepodařilo spustit. Zkontroluj oprávnění Chromu a webu, zavři jiné aplikace používající kameru a zkus volbu Automaticky.')+' Technická chyba: '+n+(e&&e.message?' ('+e.message+')':'')+'.';
+}
+function setC(k,val){C[k]=val;saveC()}
+function setCam(x){C.cam=x;saveC();applyCfg()}
+function setCameraDevice(x){const o=cameraOptions.find(d=>d.id===x);C.deviceId=x||'';C.deviceLabel=x&&o?o.lab||'':'';saveC();cameraTestInfo=x?'Vybraná kamera uložena.':'Kamera se bude vybírat automaticky.'}
+// Test kamer nesmí běžet dvakrát najednou (dva běhy sdílejí seznam a vznikaly duplicitní kamery)
+let camBusy=false;
+async function testCameras(){if(camBusy)return;camBusy=true;try{await testCamerasRun()}finally{camBusy=false}}
+async function testCamerasRun(){
+ const rr=()=>{if(v.tab==='set'&&!v.sc)render()};
+ if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){cameraTestInfo=cameraErrorText({name:'SecurityError'});rr();return}
+ cameraTestInfo='Žádám o povolení kamery…';rr();let perm;
+ try{perm=await navigator.mediaDevices.getUserMedia({video:true,audio:false});perm.getTracks().forEach(t=>t.stop())}
+ catch(e){cameraTestInfo=cameraErrorText(e);rr();return}
+ try{
+  const ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');cameraOptions=[];
+  for(let i=0;i<ds.length;i++){
+   const d=ds[i];let label=d.label||('Kamera '+(i+1)),info='';
+   try{const st=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:d.deviceId},width:{ideal:1280},height:{ideal:720}},audio:false});const tr=st.getVideoTracks()[0],sett=tr.getSettings?tr.getSettings():{},caps=tr.getCapabilities?tr.getCapabilities():{};info=(sett.width&&sett.height?sett.width+'×'+sett.height:'rozlišení nezjištěno')+(caps.focusMode?' · ostření '+caps.focusMode.join('/'):' · ostření bez diagnostiky')+(caps.zoom?' · zoom':'')+(caps.torch?' · svítilna':'');tr.stop();
+   }catch(e){info='test selhal: '+(e.name||'chyba')}
+   cameraOptions.push({id:d.deviceId,label,lab:d.label||'',info});
+  }
+  if(C.deviceId&&!cameraOptions.some(d=>d.id===C.deviceId)){const m=C.deviceLabel&&cameraOptions.find(d=>d.lab===C.deviceLabel);if(m){C.deviceId=m.id;saveC()}}
+  cameraTestInfo=cameraOptions.length?'Nalezeno '+cameraOptions.length+' kamerových vstupů ve WebView. Test ověřil otevření a dostupné funkce, nikoli ostrost obrazu. Vyber kameru a vyzkoušej sken na skutečném štítku.':'WebView nenahlásilo žádný kamerový vstup.';
+  // Nativní Camera2 diagnostika: logická zařízení a fyzické senzory jsou uváděny odděleně.
+  try{
+   if(window.Android&&typeof Android.getNativeCameraInfo==='function'){
+    const ni=JSON.parse(Android.getNativeCameraInfo());
+    if(ni&&Array.isArray(ni.cameras)){
+     const count={back:0,front:0,external:0,unknown:0};let physical=0;
+     ni.cameras.forEach(c=>{count[c.facing]!==undefined?count[c.facing]++:count.unknown++;physical+=(c.physicalCameraIds||[]).length});
+     const parts=[];
+     if(count.back)parts.push('zadní '+count.back);
+     if(count.front)parts.push('přední '+count.front);
+     if(count.external)parts.push('externí '+count.external);
+     if(count.unknown)parts.push('neurčené '+count.unknown);
+     cameraTestInfo+=' Camera2 (Android): '+ni.cameras.length+' logických/standardních zařízení'+(parts.length?' ('+parts.join(', ')+')':'')+'.';
+     if(physical)cameraTestInfo+=' Uvnitř logických kamer systém uvádí dalších '+physical+' fyzických senzorů; ty nemusí být samostatně volitelné.';
+     cameraTestInfo+=' Model: '+(ni.manufacturer||'Android')+' '+(ni.model||'')+'.';
+    }
+   }
+  }catch(nativeError){cameraTestInfo+=' Nativní Camera2 diagnostika není dostupná: '+(nativeError.message||nativeError)+'.'}
+ }catch(e){cameraTestInfo='Seznam kamer se nepodařilo načíst: '+(e.message||e)}rr();
+}
+function setVol(x){C.vol=+x;const e=$('sv_vol');if(e)e.textContent=Math.round(x*100)+' %';saveC()}
+// Ukotvení hlavičky: když je vypnuté, hlavička zmizí při posunu dolů a vrátí se při posunu nahoru
+let lastY=0;
+window.addEventListener('scroll',()=>{const t=document.querySelector('.top'),y=window.scrollY;
+ if(t){if(C.stick!==false||y<10||t.contains(document.activeElement))t.classList.remove('hid');
+  else if(y>lastY+6&&y>80)t.classList.add('hid');else if(y<lastY-6)t.classList.remove('hid')}
+ lastY=y},{passive:true});
+// Posuvník s třídou lk reaguje jen na tažení za tečku. Dotyk mimo tečku se ignoruje a hodnota se vrátí.
+let LK=null;
+document.addEventListener('pointerdown',e=>{LK=null;const el=e.target;if(!(el&&el.classList&&el.classList.contains('lk')))return;const r=el.getBoundingClientRect(),mn=+el.min,mx=+el.max,p=(el.value-mn)/(mx-mn),tx=r.left+10+p*(r.width-20);if(Math.abs(e.clientX-tx)>30)LK={el,val:el.value}},true);
+['pointerup','pointercancel'].forEach(t=>document.addEventListener(t,()=>{LK=null},true));
+function lk(el){if(LK&&LK.el===el){el.value=LK.val;return true}return false}
+function setScale(k,val){setTimeout(measureMq,80);C[k]=+val;const e=$('sv_'+k);if(e)e.textContent=Math.round(C[k]*100)+' %';applyCfg();saveC()}
+function resetScale(){setTimeout(measureMq,80);C.fs=C.bs=C.cs=1;saveC();applyCfg();render()}
+function setFm(f,el){const q=new Set(C.fm);el.checked?q.add(f):q.delete(f);if(!q.size){el.checked=true;toast('Musí zůstat zapnutý aspoň jeden typ kódu');return}C.fm=FMT.map(x=>x[0]).filter(x=>q.has(x));saveC()}
+function testBeep(){beep('ok');setTimeout(()=>beep('warn'),450)}
+function testSignals(){
+ if(!C.snd&&!C.vib){toast('Zvuky i vibrace jsou vypnuté. Zapni aspoň jedno.');return}
+ let m;
+ if(!C.vib)m='Vibrace jsou vypnuté.';
+ else if(!navigator.vibrate)m='Vibrace tento prohlížeč nebo aplikace nepodporuje.';
+ else{let ok=false;try{ok=navigator.vibrate([150,100,150])}catch(e){}
+  m=ok?'Vibrace odeslána (2× krátce). Když nic necítíš, zkontroluj vibrace v telefonu a oprávnění aplikace.':'Vibraci systém zablokoval. Klepni na tlačítko znovu.'}
+ if(C.snd){beep('ok',1);setTimeout(()=>beep('warn',1),450)}else m+=' Zvuky jsou vypnuté.';
+ toast(m)}
+function pageSet(){
+ const sl=(k,t)=>'<div class="set"><div class="hd"><label for="s_'+k+'">'+t+'</label><b class="num" id="sv_'+k+'">'+Math.round(C[k]*100)+' %</b></div><input id="s_'+k+'" class="rg lk" type="range" min="0.7" max="1.3" step="0.05" value="'+C[k]+'" oninput="if(lk(this))return;setScale(\''+k+'\',this.value)"></div>';
+ const tg=(k,t)=>'<label class="sw sws"><span>'+t+'</span><input type="checkbox"'+(C[k]?' checked':'')+' onchange="setC(\''+k+'\',this.checked)"></label>';
+ const vw=(k,t)=>'<label class="sw sws"><span>'+t+'</span><input type="checkbox"'+(C[k]?' checked':'')+' onchange="setView(\''+k+'\',this)"></label>';
+ const op=(k,a)=>a.map(o=>'<option value="'+o[0]+'"'+(String(C[k])===String(o[0])?' selected':'')+'>'+o[1]+'</option>').join('');
+ const H2=(t,first)=>'<h2 class="sec'+(first?' first':'')+'">'+t+'</h2>', H3=t=>'<h3 class="sub">'+t+'</h3>';
+ const camList=cameraOptions.slice();
+ if(C.deviceId&&!camList.some(d=>d.id===C.deviceId))camList.unshift({id:C.deviceId,label:C.deviceLabel||'Dříve vybraná kamera',info:'uložená volba'});
+ const fmts=FMT.map(f=>'<label class="sw sws"><span>'+f[1]+'</span><input type="checkbox"'+(C.fm.includes(f[0])?' checked':'')+' onchange="setFm(\''+f[0]+'\',this)"></label>').join('');
+ const kamera='<p class="mut sm">Při volbě Automaticky vybírá kameru telefon a u telefonů s více objektivy nemusí zvolit tu nejpřesnější pro čárové kódy. Když některá kamera čte lépe, vyber ji ručně, volba se uloží.</p><button class="btn" onclick="testCameras()">Otestovat dostupné kamery</button><button class="btn" style="margin-top:10px" onclick="camTestOpen()">Vyzkoušet čtení kamerou</button><label class="mut sm" for="camdev">Typ kamery</label><select id="camdev" class="in" onchange="setCameraDevice(this.value)"><option value=""'+(!C.deviceId?' selected':'')+'>Automaticky (výběr telefonu)</option>'+camList.map(d=>'<option value="'+esc(d.id)+'"'+(C.deviceId===d.id?' selected':'')+'>'+esc(d.label+' — '+d.info)+'</option>').join('')+'</select><p class="mut sm">'+esc(cameraTestInfo)+'</p>'+
+  '<label class="mut sm" for="cam2">Velikost okna kamery</label><select id="cam2" class="in" onchange="setCam(this.value)">'+op('cam',[['s','Malé'],['m','Střední'],['l','Velké (až přes půl displeje)']])+'</select>'+
+  '<label class="mut sm" for="car">Oblast čtení</label><select id="car" class="in" onchange="setC(\'ar\',this.value)">'+op('ar',[['band','Široké pásmo u čáry (doporučeno)'],['narrow','Užší pruh u čáry'],['full','Celé okno kamery']])+'</select><p class="mut sm">Čte se jen z oblasti v rámečku, takže se nechytají sousední štítky. Při zapnutém samotném QR nebo Data Matrix se čte celý záběr.</p>';
+ const skener='<label class="mut sm" for="ccf">Potvrzení čtení</label><select id="ccf" class="in" onchange="setC(\'cf\',+this.value)">'+op('cf',[[1,'1× (nejrychlejší)'],[2,'2× shodně za sebou (doporučeno)'],[3,'3× shodně za sebou (nejpřesnější)']])+'</select><p class="mut sm">Kód se přijme, až když ho kamera přečte vícekrát stejně. Odstraní to chybná čtení.</p>'+
+  tg('wake','Nevypínat displej při skenování')+
+  tg('val','Ignorovat kódy bez čísla (aspoň 6 číslic)')+
+  H3('Typy kódů')+'<p class="mut sm">Čím méně typů zapneš, tím rychlejší a přesnější je čtení. Nech zapnuté jen ty, které máš na štítcích.</p>'+fmts+
+  '<p class="mut sm">'+(C.lf?'Naposledy přečtený typ kódu: <b>'+esc(fmtName(C.lf))+'</b>. Ostatní typy způsobují falešná čtení, např. přidanou nulu.':'Zatím nebyl přečten žádný kód. Po prvním skenu se tady zobrazí jeho typ.')+'</p><button class="btn" onclick="onlyFmt()">Nechat zapnutý typ kódu podle posledního čtení</button>';
+ const vzhled='<label class="mut sm" for="thm">Tmavý / světlý režim</label><select id="thm" class="in" onchange="setTheme(this.value)">'+op('theme',[['light','Světlý'],['dark','Tmavý']])+'</select>'+
+  '<label class="mut sm" for="acc">Barva tlačítek a zvýraznění</label><select id="acc" class="in" onchange="setAccent(this.value)">'+Object.keys(ACC).map(k=>'<option value="'+k+'"'+(C.accent===k?' selected':'')+'>'+ACC[k][0]+'</option>').join('')+'</select>'+
+  '<label class="sw sws"><span>Sjednotit barvu zaškrtávátek a ukazatelů průběhu s barvou tlačítek</span><input type="checkbox"'+(C.uni?' checked':'')+' onchange="setUni(this.checked)"></label>'+
+  '<label class="sw sws"><span>Ukotvit vyhledávací pole a filtry<br><span class="mut sm">Když je vypnuto, při posouvání dolů zmizí a při posunu zpět se zobrazí.</span></span><input type="checkbox"'+(C.stick!==false?' checked':'')+' onchange="setC(\'stick\',this.checked)"></label>'+
+  '<label class="sw sws"><span>Zobrazit tlačítka filtrů s počtem 0<br><span class="mut sm">Vypnuto: filtry bez položek se skryjí. Historie je vidět vždy.</span></span><input type="checkbox"'+(C.zf?' checked':'')+' onchange="setC(\'zf\',this.checked)"></label>'+
+  H3('Majetkové číslo')+'<label class="mut sm" for="grp">Vložit mezeru po každých X číslicích (jen na displeji)</label><select id="grp" class="in" onchange="setC(\'group\',+this.value);render()">'+op('group',[[0,'Bez mezer'],[3,'3 číslice'],[4,'4 číslice'],[5,'5 číslic'],[6,'6 číslic'],[7,'7 číslic'],[8,'8 číslic']])+'</select><p class="mut sm">Mezery slouží pouze pro přehledné zobrazení a zadávání. Do Excelu se majetkové číslo exportuje bez mezer.</p>'+
+  H3('Velikost zobrazení')+'<p class="mut sm">Změna se projeví hned. 100 % je výchozí velikost. Posuvník se mění jen tažením za tečku, klepnutí na lištu nic nezmění.</p>'+sl('fs','Písmo')+sl('bs','Tlačítka a ovládací prvky')+sl('cs','Karty')+
+  H3('Ukázka')+'<div class="row" style="cursor:default"><span><span class="num idn">'+esc(fmt('1234567890'))+'</span> <span class="mut sm">Počet: <b>1 ks</b></span></span><span></span><span class="span2">Ukázková karta položky</span></div><button class="btn" style="margin-bottom:10px">Ukázkové tlačítko</button><button class="btn" onclick="resetScale()">Obnovit výchozí velikosti</button>';
+ const dirUI=H3('Kam ukládat soubory')+'<p class="mut sm">Zálohy (JSON) a exporty (xlsx) se ukládají:</p><p class="sm"><b>V telefonu:</b> '+esc(phonePath())+'.<br><b>V počítači:</b> do vybrané složky, jinak do stahování prohlížeče.<br><b>Fotky přebytků:</b> jsou součástí zálohy (JSON).</p>'+
+  (canPickDir()?'<p><b>Složka:</b> '+esc(dirHandle?dirHandle.name:'výchozí (stahování prohlížeče)')+'</p>':'<label class="mut sm" for="dir">Cesta ke složce</label><input id="dir" class="in" value="'+esc(C.dir||'')+'" placeholder="'+DIR_DEF+'" autocapitalize="off" autocomplete="off" spellcheck="false" onchange="setDir(this.value)">')+
+  '<p class="mut sm">'+esc(dirNote())+'</p>'+(canPickDir()?'<div class="two"><button class="btn" onclick="resetDir()">Výchozí složka</button><button class="btn" onclick="pickDir()">Vybrat složku…</button></div>':'<button class="btn" onclick="resetDir()">Výchozí cesta</button>');
+ const zaloha=tg('bkOn','Připomínat zálohu')+
+  '<label class="mut sm" for="bkn">Po kolika nezálohovaných položkách</label><select id="bkn" class="in" onchange="setC(\'bkN\',+this.value)">'+op('bkN',[[0,'Vypnuto'],[10,'10 položek'],[20,'20 položek'],[50,'50 položek'],[100,'100 položek']])+'</select>'+
+  '<label class="mut sm" for="bkm">Po kolika minutách od poslední zálohy</label><select id="bkm" class="in" onchange="setC(\'bkM\',+this.value)">'+op('bkM',[[0,'Vypnuto'],[15,'15 minut'],[30,'30 minut'],[60,'1 hodina'],[120,'2 hodiny']])+'</select>'+
+  dirUI+H3('Automatická záloha')+tg('auto','Zálohu stáhnout automaticky (soubor JSON)')+tg('bkQuit','Při ukončení aplikace uložit zálohu (jsou-li nezálohované položky)')+'<p class="mut sm">Po dosažení limitu se záloha sama uloží do nastavené složky. Chrome na Androidu může jednou požádat o povolení více stažení, Safari na iPhonu automatické stahování může blokovat. Záloha obsahuje i fotky přebytků.</p><button class="btn" onclick="backup()">Uložit zálohu teď</button>';
+ const zvuk='<div class="set"><div class="hd"><label for="s_vol">Hlasitost</label><b class="num" id="sv_vol">'+Math.round((C.vol==null?.6:C.vol)*100)+' %</b></div><input id="s_vol" class="rg" type="range" min="0.1" max="1" step="0.05" value="'+(C.vol==null?.6:C.vol)+'" oninput="setVol(this.value)" onchange="testBeep()"></div>';
+ const vraceni='<label class="mut sm" for="ut">Jak dlouho se zobrazuje hláška s tlačítkem Vrátit</label><select id="ut" class="in" onchange="setC(\'ut\',+this.value)">'+op('ut',[[3,'3 sekundy'],[6,'6 sekund (výchozí)'],[10,'10 sekund'],[15,'15 sekund'],[30,'30 sekund']])+'</select><p class="mut sm">Po zápisu položky nebo přebytku se na chvíli objeví hláška, kterou můžeš zápis vrátit. Starší zápisy jdou vrátit i potom na kartě Souhrn v části Poslední zápisy a vrácení.</p>';
+ const fotky='<label class="mut sm" for="pxs">Rozlišení fotek přebytků</label><select id="pxs" class="in" onchange="setC(\'phpx\',+this.value)">'+[[1000,'Úsporné (1000 px, výchozí)'],[1600,'Čitelnější štítky (1600 px)'],[2400,'Nejlepší (2400 px, velké soubory)']].map(o=>'<option value="'+o[0]+'"'+((+C.phpx||1000)===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select><p class="mut sm">Platí pro nově pořízené fotky. Větší rozlišení zabere víc místa v telefonu i v záloze. Už pořízené fotky se nemění.</p>';
+ const uloziste='<p class="mut sm" id="stg">Zjišťuji stav úložiště…</p><p class="mut sm" id="ofl">Zjišťuji offline provoz…</p>';
+ const body=H2('Kamera',1)+kamera+
+  H2('Skener')+skener+
+  H2('Fotky přebytků')+fotky+
+  H2('Záloha')+zaloha+
+  H2('Úložiště a offline')+uloziste+
+  H2('Hlavní obrazovka')+'<p class="mut sm">Které volby se zobrazí nahoře na hlavní obrazovce Inventura. Aspoň jedna musí zůstat zapnutá.</p>'+vw('showO','Podle osob')+vw('showAll','Vše')+vw('showB','Podle budov')+
+  H2('Vrácení zápisu')+vraceni+
+  H2('Vzhled')+vzhled+
+  H2('Zvuk a vibrace')+tg('snd','Zvukové signály')+tg('vib','Vibrace')+zvuk+'<p class="mut sm">Vibrace nepodporuje Safari na iPhonu, tam fungují jen zvuky. Pokud je ticho, zkontroluj hlasitost médií a na iPhonu přepínač tichého režimu.</p><button class="btn" onclick="testSignals()">Vyzkoušet signály</button>';
+ // Každá sekce je v samostatném podbarveném rámečku
+ return '<header class="top"><h1>NASTAVENÍ</h1></header>'+body.split('<h2 class="sec').map((p,i)=>i?'<section class="ss"><h2 class="sec'+p+'</section>':p).join('')}
+
+let dip=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e});
+function installApp(){
+ if(window.matchMedia&&matchMedia('(display-mode: standalone)').matches||navigator.standalone){toast('Aplikace je už nainstalovaná');return}
+ if(dip){dip.prompt();dip.userChoice.finally(()=>{dip=null});return}
+ toast(/iphone|ipad|ipod/i.test(navigator.userAgent)?'V Safari klepni na Sdílet a Přidat na plochu':'V menu prohlížeče zvol Přidat na plochu nebo Nainstalovat aplikaci')}
+async function chkApk(){try{const r=await fetch('inventura.apk',{method:'HEAD',cache:'no-store'});if(r.ok&&!/html/i.test(r.headers.get('content-type')||'')){const a=$('apk');if(a)a.style.display='block'}}catch(e){}}
+const idbDel=async k=>{try{const d=await idb();await new Promise((ok,no)=>{const t=d.transaction('f','readwrite');t.objectStore('f').delete(k);t.oncomplete=ok;t.onerror=()=>no(t.error)})}catch(e){}};
+function photoKeys(x){if(Array.isArray(x&&x.phs)&&x.phs.length)return [...new Set(x.phs.map(String))];return x&&x.ph&&x.t?[String(x.t)]:[]}
+// Odstranění vybraných fotek u zapsaného přebytku (výběr klepnutím na fotky)
+// ===== Prohlížeč fotek na celou obrazovku: šipky nebo tažení prstem, klepnutím na fotku se přiblíží =====
+let pv=null;
+function pvClose(){if(!pv)return;if(pv.u)URL.revokeObjectURL(pv.u);pv.el.remove();pv=null}
+async function pvShow(i){if(!pv)return;const n=pv.g.length;if(i<0||i>=n)return;pv.i=i;const my=++pv.gen;let b=null;try{b=await pv.g[i]()}catch(e){}
+ if(!pv||my!==pv.gen)return;if(pv.u)URL.revokeObjectURL(pv.u);pv.u=b?URL.createObjectURL(b):null;pv.img.src=pv.u||'';pv.el.classList.remove('z');
+ pv.el.querySelector('.pvc').textContent=(i+1)+' / '+n+' · klepnutím na fotku přiblížíš';
+ pv.el.querySelector('.pvp').style.display=i>0?'':'none';pv.el.querySelector('.pvn').style.display=i<n-1?'':'none'}
+function pvOpen(g,i){if(pv||!g.length)return;const el=document.createElement('div');el.className='pv';el.setAttribute('role','dialog');el.setAttribute('aria-label','Fotka přebytku');
+ el.innerHTML='<div class="pvc"></div><img class="pvi" alt="Fotka přebytku"><button type="button" class="pvb pvp" aria-label="Předchozí">‹</button><button type="button" class="pvb pvn" aria-label="Další">›</button><button type="button" class="pvb pvx" aria-label="Zavřít">✕</button>';
+ pv={el,g,i:0,gen:0,u:null,img:el.querySelector('.pvi')};
+ el.querySelector('.pvp').onclick=()=>pvShow(pv.i-1);el.querySelector('.pvn').onclick=()=>pvShow(pv.i+1);el.querySelector('.pvx').onclick=pvClose;
+ let x0=null;el.addEventListener('touchstart',e=>{x0=e.touches.length===1?e.touches[0].clientX:null},{passive:true});
+ el.addEventListener('touchend',e=>{if(x0==null||el.classList.contains('z'))return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>60)pvShow(pv.i+(dx<0?1:-1))},{passive:true});
+ pv.img.onclick=()=>el.classList.toggle('z');el.addEventListener('click',e=>{if(e.target===el)pvClose()});
+ document.body.appendChild(el);pvShow(i)}
+function phView(im){const ks=[...im.parentElement.querySelectorAll('img[data-ph]')].map(x=>x.dataset.ph);pvOpen(ks.map(k=>()=>idbGet('ph'+k)),Math.max(0,ks.indexOf(im.dataset.ph)))}
+function phViewPending(i){const a=v.xphs||[];pvOpen(a.map(b=>()=>Promise.resolve(b)),Math.max(0,i))}
+function xBtns(x,n){const pd=v.pd&&v.pd.t===x.t;
+ if(pd)return '<span class="span2"><button type="button" class="chip bad" id="pdb" onclick="pdDel()"'+(v.pd.sel.length?'':' disabled')+'>Odstranit vybrané ('+v.pd.sel.length+')</button><button type="button" class="chip" onclick="pdAll()">Vybrat vše</button><button type="button" class="chip" onclick="pdEnd()">Zrušit</button></span><span class="span2 mut sm">Klepni na fotky, které chceš odstranit.</span>';
+ return '<span class="span2"><button type="button" class="chip" onclick="takeXh('+x.t+')">'+(n?'Přidat další fotku':'Přidat fotku')+'</button>'+(n?'<button type="button" class="chip" onclick="pdStart('+x.t+')">Odstranit fotky</button>':'')+'<input id="xf'+x.t+'" type="file" accept="image/*" capture="environment" hidden onchange="xShot(event,'+x.t+')"></span>'}
+function pdStart(t){v.pd={t:+t,sel:[]};render()}
+function pdEnd(){v.pd=null;render()}
+function pdSync(){const b=$('pdb');if(b&&v.pd){b.textContent='Odstranit vybrané ('+v.pd.sel.length+')';b.disabled=!v.pd.sel.length}}
+function phClick(im){const pd=v.pd;if(pd&&pd.t===+im.dataset.t){const k=im.dataset.ph,i=pd.sel.indexOf(k);if(i<0)pd.sel.push(k);else pd.sel.splice(i,1);im.classList.toggle('sel',i<0);pdSync();return}phView(im)}
+function pdAll(){const pd=v.pd,x=pd&&S.x.find(y=>y.t===pd.t);if(!x)return;const ks=photoKeys(x);pd.sel=pd.sel.length===ks.length?[]:ks.slice();render()}
+async function pdDel(){const pd=v.pd;if(!pd||!pd.sel.length)return;const x=S.x.find(y=>y.t===pd.t);if(!x){v.pd=null;render();return}
+ if(!await askQ('Odstranit vybrané fotky?\n\nOdstraní se fotky přebytku '+fmt(x.n)+' (počet: '+pd.sel.length+'). Akci nelze vrátit.','Odstranit','Zrušit'))return;
+ const rm=new Set(pd.sel),keep=photoKeys(x).filter(k=>!rm.has(k));
+ for(const k of rm)await idbDel('ph'+k);
+ x.phs=keep;x.ph=keep.length?1:0;x.mt=Date.now();v.pd=null;save();render();toast('Odstraněno fotografií: '+rm.size)}
+function delXPhotos(x){for(const k of photoKeys(x))idbDel('ph'+k)}
+async function appendXPhoto(t,b){const x=S.x.find(y=>y.t===t);if(!x)throw new Error('Přebytek nebyl nalezen');const keys=photoKeys(x),key=String(t)+'_'+Date.now()+'_'+(keys.length+1)+'_'+Math.random().toString(36).slice(2,8);await idbSetMany([['ph'+key,b]]);x.phs=[...keys,key];x.ph=1;x.mt=Date.now();save()}
+async function shrink(f){const PX=+C.phpx||1000,b=await createImageBitmap(f),k=Math.min(1,PX/Math.max(b.width,b.height)),c=document.createElement('canvas');c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);c.getContext('2d').drawImage(b,0,0,c.width,c.height);return await new Promise(ok=>c.toBlob(ok,'image/jpeg',PX>1000?.8:.7))}
+function renderXPreviews(){const box=$('xpv');if(!box)return;const c=$('xpc');if(c)c.dataset.m='';box.innerHTML='';const a=v.xphs||[];box.style.display=a.length?'flex':'none';for(const b of a){const im=document.createElement('img');im.className='th';im.alt='Náhled fotografie přebytku';im.src=URL.createObjectURL(b);im.onload=()=>URL.revokeObjectURL(im.src);im.onclick=()=>{if(xpMode()){im.classList.toggle('sel');xpSync()}else phViewPending([...box.children].indexOf(im))};box.appendChild(im)}xpcDraw()}
+function xpMode(){const c=$('xpc');return !!c&&c.dataset.m==='1'}
+function xpcDraw(){const c=$('xpc');if(!c)return;const n=(v.xphs||[]).length;if(!n)c.dataset.m='';c.style.display=n?'flex':'none';
+ c.innerHTML=!n?'':c.dataset.m==='1'?'<button type="button" class="chip bad" id="xpd" onclick="xpDel()" disabled>Odstranit vybrané (0)</button><button type="button" class="chip" onclick="xpAll()">Vybrat vše</button><button type="button" class="chip" onclick="xpEnd()">Zrušit</button>':'<button type="button" class="chip" onclick="xpStart()">Odstranit fotky</button>';xpSync()}
+function xpSync(){const b=$('xpd');if(b){const n=document.querySelectorAll('#xpv .th.sel').length;b.textContent='Odstranit vybrané ('+n+')';b.disabled=!n}}
+function xpStart(){const c=$('xpc');if(!c)return;c.dataset.m='1';document.querySelectorAll('#xpv .th').forEach(i=>i.classList.remove('big'));xpcDraw()}
+function xpEnd(){const c=$('xpc');if(!c)return;c.dataset.m='';document.querySelectorAll('#xpv .th').forEach(i=>i.classList.remove('sel'));xpcDraw()}
+function xpAll(){const a=[...document.querySelectorAll('#xpv .th')],all=a.length&&a.every(i=>i.classList.contains('sel'));a.forEach(i=>i.classList.toggle('sel',!all));xpSync()}
+function xpDel(){const idx=[];document.querySelectorAll('#xpv .th').forEach((im,i)=>{if(im.classList.contains('sel'))idx.push(i)});if(!idx.length)return;v.xphs=(v.xphs||[]).filter((_,i)=>!idx.includes(i));renderXPreviews();toast('Odebráno fotografií: '+idx.length)}
+async function xPre(e){const f=e.target.files[0];e.target.value='';if(!f)return;try{v.xphs=v.xphs||[];v.xphs.push(await shrink(f));renderXPreviews()}catch(er){toast('Foto se nepodařilo zpracovat')}}
+// Foto přímo v aplikaci: systémový výběr souboru v APK fotoaparát neotevře, proto se použije stejná kamera jako pro skenování.
+// Vrací snímek, null při zrušení, false když kamera není dostupná (pak se nabídne výběr souboru).
+// Počká na první snímek z kamery, aby se okno zobrazilo rovnou ve správné velikosti (bez problikávání ikony videa)
+function frameReady(vd,ms){return new Promise(r=>{let d=false;const f=()=>{if(d)return;d=true;vd.removeEventListener('loadeddata',f);r()};if(vd.videoWidth>0&&vd.readyState>=2)return f();vd.addEventListener('loadeddata',f);setTimeout(f,ms||1500)})}
+let shoot=null;
+function shootPhoto(){return new Promise(async res=>{
+ camOff();const scanVid=$('vid');if(scanVid){try{scanVid.pause();scanVid.srcObject=null}catch(e){}}const under=document.querySelector('#app > .scrim');if(under)under.style.visibility='hidden';let s=null,tr=null,done=false,pics=[];
+ const el=document.createElement('div');el.className='scrim csp';el.style.alignItems='center';el.style.zIndex=50;
+ el.innerHTML='<div class="sheet" role="dialog" aria-label="Foto přebytku" style="max-width:420px;width:calc(100% - 32px);border-radius:12px;padding:22px 20px 20px;max-height:94vh;overflow:auto;opacity:0;pointer-events:none;animation:none"><h2 style="margin:0 0 14px">Vyfoť nalezený majetek</h2><video playsinline muted autoplay style="display:block;width:100%;height:55vh;max-height:420px;min-height:220px;aspect-ratio:4/3;background:#000;border-radius:10px;object-fit:cover;margin:0 0 14px"></video><p class="mut sm" id="shm" style="margin:0 0 16px;line-height:1.45">Připrav kameru a vyfoť první snímek.</p><div class="two" style="gap:10px"><button class="btn" type="button">Zrušit</button><button class="btn pri" type="button" disabled>Vyfotit</button></div><button class="btn ok" type="button" disabled style="margin-top:12px">Hotovo</button></div>';
+ const vid=el.querySelector('video'),bs=el.querySelectorAll('button'),msg=el.querySelector('#shm'),finish=bs[2];
+ const close=r=>{if(done)return;done=true;shoot=null;try{s&&s.getTracks().forEach(t=>t.stop())}catch(e){}el.remove();if(under)under.style.visibility='';res(r)};
+ shoot={close};bs[0].onclick=()=>close(null);finish.onclick=()=>close(pics);el.addEventListener('click',e=>{if(e.target===el)close(null)});
+ document.body.appendChild(el);
+ try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw 0;
+  const base={width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30,max:30}};try{s=C.deviceId?await navigator.mediaDevices.getUserMedia({video:{...base,deviceId:{exact:C.deviceId}},audio:false}):await navigator.mediaDevices.getUserMedia({video:{...base,facingMode:{ideal:'environment'}},audio:false})}catch(first){s=await navigator.mediaDevices.getUserMedia({video:{...base,facingMode:{ideal:'environment'}},audio:false})}if(done){s.getTracks().forEach(t=>t.stop());return}
+  tr=s.getVideoTracks()[0];vid.srcObject=s;await vid.play();await frameReady(vid,900);if(done)return;{const sh=el.firstChild;sh.style.opacity='';sh.style.pointerEvents=''}bs[1].disabled=false}catch(e){close(false);return}
+ bs[1].onclick=async()=>{bs[1].disabled=true;msg.textContent='Fotím…';let blob=null;
+  try{if(window.ImageCapture&&tr)blob=await new ImageCapture(tr).takePhoto()}catch(e){}
+  if(!blob){try{const c=document.createElement('canvas');c.width=vid.videoWidth;c.height=vid.videoHeight;c.getContext('2d').drawImage(vid,0,0);blob=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.9))}catch(e){}}
+  if(blob){pics.push(blob);msg.textContent='Pořízeno snímků: '+pics.length+'. Můžeš vyfotit další snímek, nebo klepnout na Hotovo.';bs[1].textContent='Vyfotit další snímek';finish.disabled=false}
+  else msg.textContent='Snímek se nepodařilo pořídit. Zkus to znovu.';
+  bs[1].disabled=false}
+ })}
+async function takeX(){const pics=await shootPhoto();if(pics===false){const i=$('xph');if(i)i.click();return}if(!pics)return;
+ try{v.xphs=v.xphs||[];for(const b of pics)v.xphs.push(await shrink(b));renderXPreviews()}catch(er){toast('Foto se nepodařilo zpracovat')}}
+async function takeXh(t){const pics=await shootPhoto();if(pics===false){const i=$('xf'+t);if(i)i.click();return}if(!pics)return;
+ try{for(const b of pics)await appendXPhoto(t,await shrink(b));render();toast('Uloženo fotografií: '+pics.length)}catch(er){toast('Foto se nepodařilo zpracovat')}}
+async function xShot(e,t){const f=e.target.files[0];e.target.value='';if(!f)return;try{await appendXPhoto(t,await shrink(f));render();toast('Fotka uložena')}catch(er){toast('Foto se nepodařilo zpracovat')}}
+async function loadPhotos(){const imgs=[...document.querySelectorAll('img[data-ph]')];if(!imgs.length)return;let d;try{d=await idb()}catch(e){imgs.forEach(im=>im.style.display='none');return}try{await new Promise(done=>{const tx=d.transaction('f','readonly'),store=tx.objectStore('f');for(const im of imgs){const q=store.get('ph'+im.dataset.ph);q.onsuccess=()=>{const b=q.result;if(b){const u=URL.createObjectURL(b);im.onload=()=>URL.revokeObjectURL(u);im.onerror=()=>{im.style.display='none';URL.revokeObjectURL(u)};im.src=u}else im.style.display='none'};q.onerror=()=>{im.style.display='none'}}tx.oncomplete=done;tx.onerror=done;tx.onabort=done})}finally{d.close()}}
+function logPush(e){e.w=Date.now();(S.log=S.log||[]).push(e);if(S.log.length>60)S.log.shift()}
+function undoToast(m){const t=$('toast');t.innerHTML='<span class="tm">'+esc(m)+'</span><button class="ub" onclick="undoLast()">Vrátit</button>';t.classList.add('on');t.classList.add('act');clearTimeout(tt);tt=setTimeout(()=>{t.classList.remove('on');t.classList.remove('act')},(+C.ut>0?+C.ut:6)*1000)}
+function undoAt(i){const e=(S.log||[])[i];if(!e)return;const sc=v.sc;
+ if(e.kind==='x'){const j=S.x.findIndex(y=>y.t===e.xt);if(j<0){toast('Přebytek už neexistuje');return}const x=S.x.splice(j,1)[0];delXPhotos(x)}
+ else{const c=S.r[e.k];if(!c||c.t!==e.rt){toast('Záznam se mezitím změnil, použij Opravit');return}if(e.prev)S.r[e.k]=e.prev;else delete S.r[e.k]}
+ S.log.splice(i,1);save();if(sc)camOff();render();if(sc)setTimeout(camOn,60);toast('Vráceno: '+fmt(e.id))}
+function undoLast(){if((S.log||[]).length)undoAt(S.log.length-1)}
+function openHist(){camOff();v.sc=false;v.hist=true;render()}
+function sheetHist(){const L=S.log||[];
+ const rows=L.map((e,i)=>({e,i})).reverse().map(o=>{const e=o.e,tm=new Date(e.w).toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit',second:'2-digit'});let lab,ok,edit='';
+  if(e.kind==='x'){lab='Přebytek';ok=S.x.some(y=>y.t===e.xt)}
+  else{lab=e.s==='f'?'Nalezeno':'Nenalezeno';const c=S.r[e.k];ok=!!c&&c.t===e.rt;if(D.some(d=>d.k===e.k))edit='<button class="btn" onclick="openItem(\''+e.k+'\')">Opravit</button>'}
+  return '<div class="row" style="cursor:default"><span><span class="num idn">'+esc(fmt(e.id))+'</span> <span class="mut sm">'+tm+'</span></span><span><span class="pill'+(e.kind==='x'?' x':e.s==='m'?' m':e.s==='f'?' f':'')+'">'+lab+'</span></span><span class="span2">'+esc(e.p||'')+'</span><div class="two span2">'+(edit||'<span></span>')+'<button class="btn bad"'+(ok?'':' disabled')+' onclick="undoAt('+o.i+')">Vrátit</button></div></div>'}).join('');
+ return '<div class="scrim" onclick="if(event.target===this)closeS()"><div class="sheet" role="dialog" aria-label="Poslední zápisy"><div class="hd"><h2>Poslední zápisy</h2><button class="xb" onclick="closeS()" aria-label="Zavřít">✕</button></div><p class="mut sm">Posledních '+L.length+' zápisů, nejnovější nahoře. Vrátit lze jen zápis, který se mezitím neměnil, jinak použij Opravit.</p>'+(rows||'<p class="mut">Zatím nic zapsáno.</p>')+'</div></div>'}
+function bkDue(){if(!D.length)return false;const u=unsaved();if(u<=0)return false;const age=Date.now()-(S.bk?S.bk.t:(S.t0||Date.now()));return (C.bkN>0&&u>=C.bkN)||(C.bkM>0&&age>=C.bkM*60000)}
+function bkNag(){if(!bkDue())return '';if(Date.now()-(S.nag||0)<(C.auto?300000:600000))return '';
+ if(C.auto){S.nag=Date.now();save();backup(true);return ' · zálohuji'}
+ if(C.bkOn){S.nag=Date.now();save();return ' · ulož zálohu v Souhrnu'}
+ return ''}
+setInterval(()=>{const m=bkNag();if(m)toast(m.replace(' · ',''))},60000);
+function setTheme(x){C.theme=x;saveC();applyCfg()}
+function setAccent(k){if(!ACC[k])return;C.accent=k;saveC();applyTheme()}
+function setUni(x){C.uni=!!x;saveC();applyTheme()}
+function sheetItem(){const d=D.find(x=>x.k===v.it),r0=S.r[d.k],r=r0&&r0.s!=='m'?r0:{lab:true,use:true,lc:r0&&r0.lc,nt:r0&&r0.nt};
+ return '<div class="scrim" onclick="if(event.target===this)closeS()"><div class="sheet" role="dialog" aria-label="Karta položky"><div class="hd"><span class="tag"><span class="num idb">'+esc(fmt(d.id))+'</span></span><button class="xb" onclick="closeS()" aria-label="Zavřít">✕</button></div><h2>'+esc(d.p)+'</h2><p class="mut">'+esc(d.d)+'</p><dl><dt>Počet kusů</dt><dd>'+d.q+' '+esc(ju(d.ks))+'</dd><dt>Výrobní číslo</dt><dd>'+esc(d.sn||'–')+'</dd><dt>Umístění</dt><dd>'+esc(d.b+(d.u?' · '+d.u:''))+'</dd>'+(d.note?'<dt>Poznámky</dt><dd>'+esc(d.note)+'</dd>':'')+'<dt>Odpovědná osoba</dt><dd>'+esc(d.o||'–')+'</dd>'+(d.dc>1?'<dt>Duplicita</dt><dd>řádek '+d.dn+' z '+d.dc+' se stejným číslem</dd>':'')+'</dl>'+
+ (v.loc&&d[v.by]!==v.loc?'<p class="warn">Patří do: '+esc(d[v.by])+'</p>':'')+
+ (r0&&r0.s==='m'?'<p class="warn">Dříve označeno jako Nenalezeno ('+esc(new Date(r0.t||0).toLocaleString('cs-CZ'))+(r0.by?', '+esc(r0.by):'')+').</p>':'')+
+ (d.q>1?'<div class="qty"><span>Napočtený počet<br><span class="mut sm">v evidenci '+d.q+'</span></span><div><button class="btn sq" onclick="setQ(-1)" aria-label="Méně">−</button><b class="num" id="qv">'+v.q+'</b><button class="btn sq" onclick="setQ(1)" aria-label="Více">+</button></div></div><div id="qw" style="display:none"><p class="warn">Víc než v evidenci ('+d.q+' ks) zapsat nelze. Další kus zapiš jako Přebytek.</p><button class="btn" onclick="addExtra()">Zapsat kus navíc jako Přebytek</button></div>':'')+
+ ''+swRows(d,r)+'<input id="lc" class="in" placeholder="Skutečné umístění, pokud se liší" value="'+esc(r.lc)+'"><input id="nt" class="in" placeholder="'+(v.fs?'Poznámka':'Poznámka (u Nenalezeno napiš, kde jsi hledal/a)')+'" value="'+esc(r.nt)+'">'+(v.fs?'<label class="sw"><span>Po uložení skenovat další</span><input id="cont" type="checkbox"'+(S.cont!==false?' checked':'')+'></label>':'')+''+(v.fs?'<button class="btn ok" onclick="mark(\'f\')">Nalezeno</button>':'<div class="two"><button class="btn bad" onclick="mark(\'m\')">Nenalezeno</button><button class="btn ok" onclick="mark(\'f\')">Nalezeno</button></div>')+'</div></div>'}
+
+function pickRow(d){return '<button class="row" onclick="openItem(\''+d.k+'\',true)"><span><span class="num idn">'+esc(fmt(d.id))+'</span>'+(d.dc>1?' <span class="mut sm">řádek '+d.dn+' z '+d.dc+'</span>':'')+'</span><span>'+pill(d)+'</span><span class="span2">'+esc(d.p)+'</span><span class="span2 mut sm">'+esc([d.sn?'S/N '+d.sn:'',d.b+(d.u?' · '+d.u:''),d.o].filter(Boolean).join(' · '))+'</span></button>'}
+function sheetScan(){const x=v.res,A=aimDims();let b;
+ if(!x)b='<div class="two"><button class="btn" onclick="snap()">Vyfotit štítek</button><button class="btn pri" onclick="doScan()">Najít</button></div><input id="ph" type="file" accept="image/*" hidden onchange="photo(event)">';
+ else if(x.pick)b='<p class="warn">Číslo '+esc(fmt(x.n))+' je v evidenci vícekrát ('+x.dc+' řádky). Vyber, který kus právě eviduješ:</p>'+x.pick.map(pickRow).join('');
+ else if(x.dup){const mm=x.dup.filter(d=>{const r=S.r[d.k];return r&&r.s==='m'}),ok=x.dup.length>mm.length;
+  if(mm.length)b='<p class="warn">Štítek '+esc(fmt(x.n))+' byl dříve označen jako Nenalezeno.</p><p class="mut sm">Majetek se teď našel. Otevři záznam a změň ho na Nalezeno.</p>'+mm.map(d=>{const r=S.r[d.k];return pickRow(d)+'<p class="mut sm">Nenalezeno '+esc(new Date(r.t||0).toLocaleString('cs-CZ'))+(r.by?', '+esc(r.by):'')+(r.nt?': '+esc(r.nt):'')+'</p>'}).join('')+(ok?'<p class="mut sm">Jiný kus se stejným štítkem je už zaznamenaný. Pokud jde o další fyzický kus, zapiš ho jako přebytek.</p><button class="btn" onclick="addDup()">Zapsat další kus jako přebytek</button>':'')+'<button class="btn pri" style="margin-top:10px" onclick="rescan()">Skenovat dál</button>';
+  else b='<p class="warn">Štítek '+esc(fmt(x.n))+' už je zaznamenaný.</p><p class="mut sm">Pokud jde o další fyzický kus se stejným štítkem, zapiš ho jako přebytek. Jinak záznam otevři a uprav, nebo skenuj dál.</p>'+x.dup.map(pickRow).join('')+'<button class="btn" onclick="addDup()">Zapsat další kus jako přebytek</button><button class="btn pri" style="margin-top:10px" onclick="rescan()">Skenovat dál</button>';}
+ else if(x.o)b='<p class="warn">Číslo patří do: '+esc(x.o[v.by])+': '+esc(x.o.p)+'</p><button class="btn" onclick="openItem(\''+x.o.k+'\',true)">Otevřít přesto</button>';
+ else b='<p class="warn">Číslo není v evidenci.</p>'+(x.xd?'<p class="mut sm">Tento přebytek už je zapsaný. Zapsáním přidáš další kus.</p>':'')+'<input id="xp" class="in" placeholder="Popis nalezeného majetku"><button type="button" class="btn" style="margin:0 0 10px" onclick="takeX()">Vyfotit nalezený majetek</button><input id="xph" type="file" accept="image/*" capture="environment" hidden onchange="xPre(event)"><div id="xpv" class="span2" style="display:none;gap:8px;flex-wrap:wrap;margin:0 0 10px"></div><div id="xpc" class="xpc span2" style="display:none"></div><button class="btn ok" onclick="addX()">Zapsat přebytek</button><button class="btn" style="margin-top:10px" onclick="rescan()">Skenovat dál</button>';
+ return '<div class="scrim" onclick="if(event.target===this)closeS()"><div class="sheet" role="dialog" aria-label="Skenování"><div class="hd"><h2>Skenování štítku</h2><button class="xb" onclick="closeS()" aria-label="Zavřít">✕</button></div><div class="cw" id="cw" onclick="focusTap(event)"><video id="vid" playsinline muted></video><div class="aim'+(A.m==='full'?' full':'')+'" id="aim" style="width:'+Math.round(A.ww*100)+'%;height:'+Math.round(A.hh*100)+'%"></div><button class="tb" id="tb" onclick="event.stopPropagation();torch()">Svítilna</button></div><input id="zm" class="rg" type="range" style="display:none" oninput="setZoom(this.value)" aria-label="Zoom kamery"><button class="btn pri" id="cam" onclick="camOn()" style="display:none">Aktivovat kameru</button><p class="mut sm" id="cst"></p><p class="mut sm">Kamera čte kód sama. Namiř červenou čáru na kód z 15–25 cm a drž telefon v klidu. Když se kód nedaří načíst, zkus Vyfotit štítek: pořídí jeden snímek ve vyšším rozlišení.</p><input id="sn" class="in" inputmode="numeric" autocomplete="off" placeholder="Nebo zadej majetkové číslo" value="'+(x?esc(fmt(x.n)):'')+'" oninput="formatScanInput(this)" onkeydown="if(event.key===\'Enter\')doScan()">'+b+'</div></div>'}
+
+function render(){$('app').dataset.tab=v.tab;const p=v.tab==='sum'?pageSum():v.tab==='set'?pageSet():v.loc?pageLoc():pageHome();
+ $('app').innerHTML=p+'<nav class="nav"><button class="'+(v.tab==='home'?'on':'')+'" onclick="tabHome()">INVENTURA</button><button class="'+(v.tab==='sum'?'on':'')+'" onclick="tabSum()">SOUHRN</button><button class="'+(v.tab==='set'?'on':'')+'" onclick="tabSet()" aria-label="Nastavení" title="Nastavení"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button><button onclick="quitApp()" aria-label="Ukončit aplikaci" title="Ukončit aplikaci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg></button></nav>'+(v.hist?sheetHist():v.it?sheetItem():v.sc?sheetScan():'')+(v.rs?sheetReset():'')+(v.nf?sheetNew():'');if(v.tab==='set'){chkApk();chkStore();chkOffline()}if(v.tab==='set'||v.tab==='sum')enhSel();loadPhotos()}
+function go(l){v.tab='home';v.loc=l||null;v.f='';v.sf='';render();scrollTo(0,0)}
+function goAll(){v.tab='home';v.loc=ALL_LOC;v.f='';v.sf='';render();scrollTo(0,0)}
+let NB=false;const TST=[];
+// Zásobník předchozích záložek pro tlačítko Zpět
+function navTab(to){if(NB||v.tab===to)return;if(TST.length&&TST[TST.length-1]===to)TST.pop();else{TST.push(v.tab);if(TST.length>20)TST.shift()}}
+function tabHome(){
+ navTab('home');
+ const from=v.tab;v.tab='home';
+ if(v.sn&&from==='sum'&&C.showO){
+  v.by='o';S.by='o';save();v.loc=v.sn;
+ }
+ render();scrollTo(0,0);
+}
+function tabSum(){
+ navTab('sum');
+ if(v.by==='o'&&v.loc){v.sn=v.loc;}
+ v.tab='sum';render();scrollTo(0,0);
+}
+function tabSet(){
+  navTab('set');
+  v.tab='set';
+  render();
+  scrollTo(0,0);
+  if(!cameraOptions.length&&!camAuto){
+    camAuto=true;
+    setTimeout(testCameras,100);
+  }
+}
+function closeS(){camOff();v.hist=false;v.xph=null;v.xphs=[];v.rs=false;v.it=null;v.sc=false;v.res=null;render()}
+function openItem(k,fs){camOff();v.hist=false;v.sc=false;v.res=null;v.fs=!!fs;v.it=k;const d=D.find(x=>x.k===k),r0=S.r[k],r=r0&&r0.s==='m'?null:r0;v.q=Math.min(d.q,r&&r.q!=null?r.q:d.q);
+ v.m=d.q>1?{lab:r&&r.nl!=null?r.nl:v.q,inv:r&&r.ni!=null?r.ni:v.q,use:r&&r.nu!=null?r.nu:v.q}:null;render()}
+function setQ(n){const d=D.find(x=>x.k===v.it),old=v.q;
+ if(n>0&&d&&v.q>=d.q){beep('warn');const w=$('qw');if(w)w.style.display='block';return}
+ v.q=Math.max(0,v.q+n);$('qv').textContent=v.q;
+ {const w=$('qw');if(w&&d&&v.q<d.q)w.style.display='none'}
+ if(v.m){for(const k in v.m){if(v.m[k]===old||v.m[k]>v.q)v.m[k]=v.q;const e=$('m_'+k);if(e)e.textContent=v.m[k]}
+  document.querySelectorAll('.mq').forEach(e=>e.textContent=v.q)}}
+function setM(k,n){v.m[k]=Math.min(v.q,Math.max(0,v.m[k]+n));$('m_'+k).textContent=v.m[k]}
+function swRows(d,r){
+ const T=[['lab','Štítek je na místě'],['inv','Inventární stav'],['use','Majetek se používá']];
+ if(d.q>1)return T.map(a=>'<div class="qty"><span>'+a[1]+'<br><span class="mut sm">u <b class="mq">'+v.q+'</b> napočtených ks</span></span><div><button class="btn sq" onclick="setM(\''+a[0]+'\',-1)" aria-label="Méně">−</button><b class="num" id="m_'+a[0]+'">'+v.m[a[0]]+'</b><button class="btn sq" onclick="setM(\''+a[0]+'\',1)" aria-label="Více">+</button></div></div>').join('');
+ return T.map(a=>{const on=a[0]==='inv'?r.inv!==false:!!r[a[0]];return '<label class="sw"><span>'+a[1]+'</span><input id="'+a[0]+'" type="checkbox"'+(on?' checked':'')+'></label>'}).join('')}
+function mark(s){if(!norm(S.who)){needName(()=>mark(s));return}const id=v.it,d=D.find(x=>x.k===id);const isFullQty=s==='m'||d.q<=1||v.q>=d.q;
+ const fl=k=>d.q>1?(s==='f'&&v.q>0&&v.m[k]>=v.q):(s==='f'&&$(k).checked);
+ if(!S.t0)S.t0=Date.now();const prev=S.r[id]?JSON.parse(JSON.stringify(S.r[id])):null;S.r[id]={s:isFullQty?s:'f',q:s==='m'?0:v.q,lab:fl('lab'),inv:fl('inv'),use:fl('use'),...(d.q>1?{nl:s==='f'?v.m.lab:0,ni:s==='f'?v.m.inv:0,nu:s==='f'?v.m.use:0}:{}),lc:s==='m'?'':$('lc').value,nt:$('nt').value,t:Date.now(),by:S.who||''};
+ logPush({kind:'r',k:id,id:d.id,p:d.p,s,rt:S.r[id].t,prev});
+ const ct=$('cont'),cont=v.fs&&ct&&ct.checked;if(ct)S.cont=ct.checked;
+ save();v.it=null;let msg=(s==='f'?'Nalezeno: ':'Nenalezeno: ')+fmt(d.id);
+ {const bm=bkNag();if(bm)msg+=bm}
+ if(cont){v.sc=true;v.res=null;render();setTimeout(camOn,60)}else render();
+ undoToast(msg)}
+function openScan(){v.sc=true;v.res=null;v.xphs=[];render();setTimeout(camOn,60)}
+function findIds(raw){
+ raw=String(raw==null?'':raw).trim();const dg=raw.replace(/\D/g,''),z=dg.replace(/^0+/,'');
+ for(const c of [raw,dg,z]){if(!c)continue;const r=D.filter(d=>d.id===c);if(r.length)return {n:c,all:r}}
+ if(z){const r=D.filter(d=>d.id.replace(/^0+/,'')===z);if(r.length)return {n:r[0].id,all:r,fix:true}}
+ // jeden přebývající znak na začátku nebo na konci (doplněná nula, kontrolní číslice), jen když je shoda jednoznačná
+ if(dg.length>=7){const ids=[...new Set(D.map(d=>d.id))].filter(id=>id.length>=6&&dg.length===id.length+1&&(dg.startsWith(id)||dg.endsWith(id)));
+  if(ids.length===1)return {n:ids[0],all:D.filter(d=>d.id===ids[0]),fix:true}}
+ return {n:dg||raw,all:[]}}
+function doScan(){
+ v.xph=null;v.xphs=[];camOff();
+ let n=norm($('sn').value);
+ if(!n) return;
+ const fi=findIds(n);n=fi.n;let all=fi.all;if(fi.fix&&all.length)toast('Čtení upraveno na číslo '+fmt(n));
+ // Číslo není v evidenci
+ if(!all.length){beep('bad');v.res={n,xd:S.x.some(x=>x.n===n&&x.g===v.by+v.loc)};render();return}
+ // Číslo je jen v jiné budově / u jiné osoby
+ const here=v.loc&&v.loc!==ALL_LOC?all.filter(d=>d[v.by]===v.loc):all;
+ if(!here.length){beep('warn');v.res={n,o:all.find(waiting)||all[0]};render();return}
+ const pend=here.filter(waiting);
+ // Právě jeden nevyřízený řádek: otevře se rovnou
+ if(pend.length===1){beep('ok');openItem(pend[0].k,true);if(here.length>1)toast('Číslo je v evidenci '+here.length+'×, otevřen nevyřízený řádek');return}
+ // Víc nevyřízených řádků se stejným číslem: výběr
+ if(pend.length>1){beep('warn');v.res={n,pick:pend,dc:here.length};render();return}
+ // Vše už zaznamenáno: duplicitní sken
+ beep('warn');v.res={n,dup:here};render()}
+function addExtra(){const d=D.find(x=>x.k===v.it);if(!d)return;const t=Date.now(),p='Kus navíc: '+d.p;S.x.push({n:d.id,p,l:v.by==='b'?v.loc:'',g:v.by+v.loc,t,by:S.who||''});logPush({kind:'x',xt:t,id:d.id,p});save();beep('ok');toast('Kus navíc zapsán jako Přebytek: '+fmt(d.id))}
+function addDup(){const d=v.res.dup.find(z=>!(S.r[z.k]&&S.r[z.k].s==='m'))||v.res.dup[0],t=Date.now();S.x.push({n:d.id,p:'Duplicita: '+d.p,l:v.by==='b'?v.loc:'',g:v.by+v.loc,t,by:S.who||''});logPush({kind:'x',xt:t,id:d.id,p:'Duplicita: '+d.p});save();closeS();undoToast('Další kus zapsán jako přebytek: '+fmt(d.id))}
+function rescan(){v.xph=null;v.xphs=[];v.res=null;render();setTimeout(camOn,60)}
+async function addX(){if(!norm(S.who)){needName(()=>addX());return}const t=Date.now(),pics=[...(v.xphs||[])],x={n:v.res.n,p:$('xp').value,l:v.by==='b'?v.loc:'',g:v.by+v.loc,t,by:S.who||''};
+ if(pics.length){x.phs=pics.map((b,i)=>String(t)+'_'+(i+1)+'_'+Math.random().toString(36).slice(2,7));x.ph=1;try{await idbSetMany(pics.map((b,i)=>['ph'+x.phs[i],b]));const d=await idb(),found=await new Promise((ok,no)=>{const tx=d.transaction('f','readonly'),o=tx.objectStore('f'),out=[];for(const k of x.phs){const q=o.get('ph'+k);q.onsuccess=()=>out.push(!!q.result);q.onerror=()=>no(q.error)}tx.oncomplete=()=>ok(out.filter(Boolean).length);tx.onerror=()=>no(tx.error)});d.close();if(found!==pics.length)throw new Error('Uloženo '+found+' z '+pics.length+' fotografií')}catch(e){toast('Fotografie se nepodařilo úplně uložit ('+pics.length+' snímků). Přebytek zatím nebyl zapsán.');return}}
+ v.xph=null;v.xphs=[];S.x.push(x);logPush({kind:'x',xt:t,id:x.n,p:x.p||'Přebytek'});save();closeS();undoToast('Přebytek zapsán: '+fmt(x.n)+(pics.length?' · fotografie: '+pics.length:''))}
+function reset(){v.rs=true;render()}
+function doReset(){if($('rsi').value.trim().toUpperCase()!=='SMAZAT')return;S.x.forEach(delXPhotos);S.r={};S.cf={};S.x=[];S.log=[];S.t0=0;S.bk=null;save();v.rs=false;render();toast('Výsledky smazány')}
+function sheetReset(){const n=Object.keys(S.r).length;
+ return '<div class="scrim" onclick="if(event.target===this)closeS()"><div class="sheet" role="alertdialog" aria-label="Smazat výsledky"><div class="hd"><h2>Smazat výsledky?</h2><button class="xb" onclick="closeS()" aria-label="Zavřít">✕</button></div><p>Smaže se <b>'+n+'</b> záznamů o položkách a <b>'+S.x.length+'</b> přebytků uložených v tomto telefonu. Načtený soubor se nesmaže. Akci nelze vrátit.</p><button class="btn" onclick="backup()">Nejdřív uložit zálohu (JSON)</button><label class="mut sm" for="rsi">Pro potvrzení napiš SMAZAT:</label><input id="rsi" class="in" autocomplete="off" autocapitalize="characters" oninput="$(\'rsb\').disabled=this.value.trim().toUpperCase()!==\'SMAZAT\'"><div class="two"><button class="btn" onclick="closeS()">Zrušit</button><button class="btn bad" id="rsb" disabled onclick="doReset()">Smazat</button></div></div></div>'}
+let fnote=false,camTok=0,zxN=0;
+let loopId=0,lastAct=0,lastFmt='',stream=null,tm,busy=false,last='',lt=0,det=null,detKey='',zx=null,zxKey='',cand='',candN=0,candT=0,track=null,tOn=false;
+const FMT=[['code_128','Code 128','CODE_128'],['code_39','Code 39','CODE_39'],['ean_13','EAN-13','EAN_13'],['ean_8','EAN-8','EAN_8'],['itf','ITF (2 z 5)','ITF'],['codabar','Codabar','CODABAR'],['qr_code','QR kód','QR_CODE'],['data_matrix','Data Matrix','DATA_MATRIX']];
+const oneD=f=>f!=='qr_code'&&f!=='data_matrix';
+const fmts=()=>{const a=FMT.map(f=>f[0]).filter(f=>(C.fm||[]).includes(f));return a.length?a:FMT.map(f=>f[0])};
+// Oblast čtení: rámeček v okně kamery je zároveň výřez, ze kterého se opravdu čte
+function aimDims(){const m=fmts().some(oneD)?C.ar:'full';return {m,ww:m==='full'?1:.95,hh:m==='narrow'?.4:m==='band'?.7:1}}
+function roi(vd){const vw=vd.videoWidth,vh=vd.videoHeight,W=vd.clientWidth||vw,H=vd.clientHeight||vh,sc=Math.max(W/vw,H/vh),sw=W/sc,sh=H/sc,sx=(vw-sw)/2,sy=(vh-sh)/2,A=aimDims();
+ return {x:sx+sw*(1-A.ww)/2,y:sy+sh*(1-A.hh)/2,w:sw*A.ww,h:sh*A.hh}}
+async function getDet(){
+ if(!('BarcodeDetector' in window))return null;
+ const f=fmts(),key=f.join();if(detKey===key)return det;
+ detKey=key;det=null;
+ try{let sup=f;try{const s=await BarcodeDetector.getSupportedFormats();sup=f.filter(x=>s.includes(x))}catch(e){}
+  if(sup.length)det=new BarcodeDetector({formats:sup})}catch(e){det=null}
+ return det}
+function getZx(){
+ if(typeof ZXing==='undefined')return null;
+ const f=fmts(),key=f.join();if(zx&&zxKey===key)return zx;
+ const h=new Map();h.set(ZXing.DecodeHintType.TRY_HARDER,true);
+ h.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,FMT.filter(x=>f.includes(x[0])).map(x=>ZXing.BarcodeFormat[x[2]]).filter(x=>x!==undefined));
+ const r=new ZXing.MultiFormatReader();r.setHints(h);zx={r,h};zxKey=key;return zx}
+async function dec(src,force){
+ const dt=await getDet();
+ if(dt){try{const r=await dt.detect(src);if(r.length){
+  if(r.length>1){const cx=src.width/2,cy=src.height/2,dd=b=>{const q=b.boundingBox;return q?Math.hypot(q.x+q.width/2-cx,q.y+q.height/2-cy):0};r.sort((a,b)=>dd(a)-dd(b))}
+  lastFmt=r[0].format||'';return r[0].rawValue}}catch(e){}}
+ const z=getZx();
+ if(z&&(force||!dt||(zxN=(zxN+1)%3)===0)){try{const res=z.r.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(src))),z.h);try{lastFmt=String(ZXing.BarcodeFormat[res.getBarcodeFormat()]||'')}catch(e){}return res.getText()}catch(e){}}
+ return null}
+function formatScanInput(el){const pos=el.selectionStart||0,digits=el.value.slice(0,pos).replace(/\D/g,'').length;el.value=fmt(el.value);let p=0,n=0;while(p<el.value.length&&n<digits){if(/\d/.test(el.value[p]))n++;p++}if(digits===0)p=0;try{el.setSelectionRange(p,p)}catch(e){}}
+function accept(t){last=t;lt=Date.now();if(lastFmt){C.lf=String(lastFmt).toLowerCase();saveC()}const e=$('sn');if(e)e.value=fmt(t);doScan()}
+async function decImg(src){for(const m of [2000,1400,900]){const k=Math.min(1,m/Math.max(src.width,src.height)),c=document.createElement('canvas');c.width=Math.round(src.width*k);c.height=Math.round(src.height*k);c.getContext('2d',{willReadFrequently:true}).drawImage(src,0,0,c.width,c.height);let t=null;try{t=await dec(c,true)}catch(e){}if(t&&(!C.val||/\d{6,}/.test(t)))return t}return null}
+// Vyfotit štítek: když běží kamera, pořídí se snímek v plném rozlišení přímo v aplikaci (funguje i po přidání na plochu). Jinak se otevře fotoaparát telefonu.
+async function snap(){
+ if(!stream){const i=$('ph');if(i)i.click();return}
+ const say=m=>{const e=$('cst');if(e)e.textContent=m};say('Fotím…');busy=true;let bmp=null;
+ try{if(window.ImageCapture&&track)bmp=await createImageBitmap(await new ImageCapture(track).takePhoto())}catch(e){}
+ try{if(!bmp)bmp=await createImageBitmap($('vid'))}catch(e){}
+ const t=bmp?await decImg(bmp):null;busy=false;if(!stream)return;
+ if(t)accept(t);else say('Kód se nepodařilo přečíst. Zkus změnit vzdálenost, chvíli drž telefon v klidu a vyfoť znovu.')}
+async function focusTap(ev){
+ lastAct=Date.now();
+ try{const cw=$('cw');if(cw&&ev&&ev.clientX!=null){const r=cw.getBoundingClientRect(),d=document.createElement('div');d.className='fr';d.style.left=(ev.clientX-r.left)+'px';d.style.top=(ev.clientY-r.top)+'px';cw.appendChild(d);setTimeout(()=>d.remove(),750)}}catch(e){}
+ if(!track)return;
+ try{
+  const caps=track.getCapabilities?track.getCapabilities():{};
+  if(!fnote&&!(caps.focusMode&&(caps.focusMode.includes('single-shot')||caps.focusMode.includes('continuous')))){fnote=true;toast('Tato kamera ostření klepnutím nepodporuje, ostří sama.')}
+  // Explicit standard constraint is more consistently honored by Android browsers;
+  // advanced constraints remain a fallback for implementations that expose only those.
+  if(caps.focusMode&&caps.focusMode.includes('single-shot')){
+   try{await track.applyConstraints({focusMode:'single-shot'})}catch(e){await track.applyConstraints({advanced:[{focusMode:'single-shot'}]})}
+   setTimeout(async()=>{try{if(!track)return;if(caps.focusMode.includes('continuous')){try{await track.applyConstraints({focusMode:'continuous'})}catch(e){await track.applyConstraints({advanced:[{focusMode:'continuous'}]})}}}catch(e){}},900);
+  }else if(caps.focusMode&&caps.focusMode.includes('continuous')){
+   try{await track.applyConstraints({focusMode:'continuous'})}catch(e){await track.applyConstraints({advanced:[{focusMode:'continuous'}]})}
+  }
+ }catch(e){}
+}
+function setZoom(x){lastAct=Date.now();C.zoom=+x;saveC();try{track&&track.applyConstraints({advanced:[{zoom:+x}]})}catch(e){}}
+const fmtName=x=>{const f=FMT.find(a=>a[0]===x);return f?f[1]:x};
+function onlyFmt(){if(FMT.some(a=>a[0]===C.lf)){C.fm=[C.lf];saveC();render();toast('Zapnutý jen typ: '+fmtName(C.lf))}else toast('Nejdřív naskenuj nějaký kód, aby se zjistil jeho typ')}
+let wl=null,wp=false;
+async function wake(){if(!C.wake||wl||wp||!('wakeLock' in navigator))return;wp=true;try{const l=await navigator.wakeLock.request('screen');wl=l;l.addEventListener('release',()=>{if(wl===l)wl=null})}catch(e){}wp=false}
+function unwake(){const l=wl;wl=null;try{l&&l.release()}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&stream)wake()});
+async function openCam(){
+ const base={width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30,max:30}};
+ const get=c=>navigator.mediaDevices.getUserMedia({video:Object.assign({},base,c),audio:false});
+ const auto=()=>get({facingMode:{ideal:'environment'}});
+ if(!C.deviceId)return {s:await auto()};
+ try{return {s:await get({deviceId:{exact:C.deviceId}})}}catch(e){}
+ // Při neplatném ID nejprve zkusíme najít kameru podle názvu bez otevření dalšího video streamu.
+ try{
+  const ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
+  const m=C.deviceLabel&&ds.find(d=>d.label===C.deviceLabel);
+  if(m){const s=await get({deviceId:{exact:m.deviceId}});C.deviceId=m.deviceId;saveC();return {s}}
+ }catch(e){}
+ // Jediný fallback stream; žádná dočasná kamera před ním.
+ return {s:await auto(),fb:true};
+}
+// Při prvním spuštění skeneru s automatickou kamerou jednou nabídne ruční výběr kamery
+function camFirstAsk(){if(C.deviceId||C.camAsk)return;C.camAsk=1;saveC();
+ setTimeout(async()=>{if(!stream||!v.sc)return;
+  if(await askQ('Vybrat kameru?\n\nTelefon má víc kamer a automatický výběr nemusí zvolit tu nejpřesnější pro čárové kódy. Chceš si kameru vybrat teď? Půjde to i později v Nastavení.','Vybrat kameru','Později')){closeS();tabSet()}},900)}
+async function camOn(){camOff();const tok=camTok;try{
+ await getDet();if(tok!==camTok)return;
+ {const o=await openCam();if(tok!==camTok){try{o.s.getTracks().forEach(x=>x.stop())}catch(e){}return}stream=o.s;if(o.fb)toast('Vybraná kamera není dostupná, tentokrát použita automatická volba')}
+ track=stream.getVideoTracks()[0];fnote=false;wake();
+ try{
+  const caps=track.getCapabilities?track.getCapabilities():{};
+  if(caps.focusMode&&caps.focusMode.includes('continuous')){
+   try{await track.applyConstraints({focusMode:'continuous'})}catch(e){await track.applyConstraints({advanced:[{focusMode:'continuous'}]})}
+  }
+  if(caps.exposureMode&&caps.exposureMode.includes('continuous')){
+   try{await track.applyConstraints({exposureMode:'continuous'})}catch(e){}
+  }
+ }catch(e){}
+ const vd=$('vid');vd.srcObject=stream;await vd.play();await frameReady(vd,1500);if(tok!==camTok||!stream)return;$('cw').style.display='block';$('cam').style.display='none';camFirstAsk();
+ try{const cp=track.getCapabilities?track.getCapabilities():{};if(cp.torch&&$('tb'))$('tb').style.display='block';if(cp.zoom&&$('zm')){const z=$('zm');z.min=cp.zoom.min;z.max=Math.min(cp.zoom.max,5);z.step=cp.zoom.step||.1;z.value=Math.min(Math.max(C.zoom||1,cp.zoom.min),z.max);z.style.display='block';setZoom(z.value)}}catch(e){}
+ const c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true}),need=C.cf||1,say=m=>{const e=$('cst');if(e)e.textContent=m};
+ cand='';candN=0;say('Hledám kód…');
+ const step=async()=>{if(busy||!stream||!vd.videoWidth)return;busy=true;
+  const R=roi(vd),s=Math.min(1,1600/R.w);c.width=Math.max(1,Math.round(R.w*s));c.height=Math.max(1,Math.round(R.h*s));
+  x.drawImage(vd,R.x,R.y,R.w,R.h,0,0,c.width,c.height);
+  let t=null;try{t=await dec(c)}catch(e){}
+  busy=false;if(!stream)return;
+  const now=Date.now();
+  if(t){lastAct=Date.now();
+   if(C.val&&!/\d{6,}/.test(t)){say('Přečteno „'+String(t).slice(0,30)+'“, nevypadá jako majetkové číslo.');return}
+   if(t===cand)candN++;else{cand=t;candN=1}
+   candT=now;
+   const kn=findIds(String(t)).all.length>0,nd=kn?(need>=3?2:1):Math.max(need,2);
+   if(candN>=nd){if(!(t===last&&now-lt<2500)){cand='';candN=0;accept(t)}}
+   else say('Potvrzuji čtení '+candN+'/'+nd+'…')
+  }else if(now-candT>1000){cand='';candN=0;say('Hledám kód…')}
+ };
+ // Smyčka místo setInterval: při skrytém displeji nečte, po 4 s bez čtení zpomalí, po 2 minutách bez čtení kameru pozastaví
+ const my=++loopId;lastAct=Date.now();
+ const loop=async()=>{if(my!==loopId||!stream)return;
+  if(document.visibilityState==='visible'){try{await step()}catch(e){busy=false}}
+  if(my!==loopId||!stream)return;
+  const idle=Date.now()-lastAct;
+  if(idle>120000){pauseCam();return}
+  tm=setTimeout(loop,idle>4000?600:300)};
+ loop()
+ }catch(e){if(tok!==camTok)return;const cb=$('cam'),cw=$('cw'),st=$('cst'),msg=cameraErrorText(e);if(cw)cw.style.display='none';if(cb)cb.style.display='block';if(st)st.textContent=msg;toast('Kameru se nepodařilo spustit. Zobrazili jsme doporučení u skeneru.')}}
+// ===== Zkouška čtení vybranou kamerou (Nastavení): srovnání kamer na skutečném štítku =====
+let ct=null;
+function ctSay(m){const e=$('cts');if(!e||!ct)return;e.textContent=m||('Rozlišení '+(ct.res||'?')+' · první přečtení: '+(ct.first==null?'zatím nic':ct.first.toFixed(1).replace('.',',')+' s')+' · přečteno '+ct.reads+'×'+(ct.last?' · poslední: '+fmt(ct.last):''))}
+function ctChips(){const b=$('ctl');if(!b||!ct)return;b.innerHTML='';
+ const add=(id,lab)=>{const x=document.createElement('button');x.type='button';x.className='chip'+(ct.id===id?' on':'');x.textContent=lab;x.onclick=()=>ctStart(id);b.appendChild(x)};
+ add('','Automaticky');cameraOptions.forEach((d,i)=>add(d.id,(d.label||('Kamera '+(i+1))).slice(0,30)))}
+function ctStop(){if(!ct)return;clearTimeout(ct.tm);if(ct.s){try{ct.s.getTracks().forEach(x=>x.stop())}catch(e){}}ct.s=null;try{ct.vid.srcObject=null}catch(e){}}
+function camTestClose(){if(!ct)return;ctStop();ct.el.remove();ct=null}
+function ctReset(){if(!ct)return;ct.t0=Date.now();ct.reads=0;ct.first=null;ct.last='';ctSay()}
+async function ctStart(id){if(!ct)return;const my=++ct.gen;ctStop();ct.id=id;ctChips();ctSay('Spouštím kameru…');
+ try{const base={width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30,max:30}};
+  const s=await navigator.mediaDevices.getUserMedia({video:id?Object.assign({},base,{deviceId:{exact:id}}):Object.assign({},base,{facingMode:{ideal:'environment'}}),audio:false});
+  if(!ct||my!==ct.gen){s.getTracks().forEach(x=>x.stop());return}
+  ct.s=s;const tr=s.getVideoTracks()[0];
+  try{const caps=tr.getCapabilities?tr.getCapabilities():{};if(caps.focusMode&&caps.focusMode.includes('continuous'))await tr.applyConstraints({focusMode:'continuous'})}catch(e){}
+  const vd=ct.vid;vd.srcObject=s;await vd.play();await frameReady(vd,1500);if(!ct||my!==ct.gen)return;
+  ct.res=vd.videoWidth+'×'+vd.videoHeight;ctReset();
+  const c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});
+  const loop=async()=>{if(!ct||my!==ct.gen)return;
+   if(vd.videoWidth){const k=Math.min(1,1280/vd.videoWidth);c.width=Math.round(vd.videoWidth*k);c.height=Math.round(vd.videoHeight*k);x.drawImage(vd,0,0,c.width,c.height);
+    let t=null;try{t=await dec(c)}catch(e){}
+    if(!ct||my!==ct.gen)return;
+    if(t&&(!C.val||/\d{6,}/.test(t))){ct.reads++;if(ct.first==null)ct.first=(Date.now()-ct.t0)/1000;ct.last=t;ctSay()}}
+   ct.tm=setTimeout(loop,250)};
+  loop()
+ }catch(e){if(ct&&my===ct.gen)ctSay('Kameru se nepodařilo spustit ('+((e&&e.name)||'chyba')+').')}}
+async function camTestOpen(){
+ if(ct||v.sc)return;
+ if(!cameraOptions.length){toast('Nejdřív klepni na Otestovat dostupné kamery');return}
+ camOff();
+ const el=document.createElement('div');el.className='scrim csp';el.style.alignItems='center';el.style.zIndex=48;
+ el.innerHTML='<div class="sheet" role="dialog" aria-modal="true" aria-label="Zkouška čtení kamerou" style="max-width:420px;width:calc(100% - 32px);border-radius:12px;padding:22px 20px 20px;max-height:92vh;overflow:auto"><h2 style="margin:0 0 10px">Zkouška čtení</h2><p class="mut sm" style="margin:0 0 14px;line-height:1.45">Namiř kameru na štítek a sleduj, jak rychle a jak často ho přečte. Přepínáním kamer je porovnáš. Měř vždy ze stejné vzdálenosti a při stejném světle.</p><video playsinline muted style="display:block;width:100%;height:200px;object-fit:cover;background:#000;border-radius:10px;margin:0 0 14px"></video><div class="chips" id="ctl" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px"></div><p class="sm" id="cts" style="margin:0 0 16px;line-height:1.45;min-height:2.9em"></p><div class="two" style="gap:10px"><button class="btn" type="button" id="ctz">Vynulovat měření</button><button class="btn pri" type="button" id="ctu">Použít tuto kameru</button></div><button class="btn" type="button" id="ctc" style="margin-top:10px">Zavřít</button></div>';
+ ct={el,gen:0,id:C.deviceId||'',s:null,vid:el.querySelector('video'),reads:0,first:null,last:'',res:'',t0:Date.now(),tm:0};
+ el.addEventListener('click',e=>{if(e.target===el)camTestClose()});
+ el.querySelector('#ctc').onclick=camTestClose;el.querySelector('#ctz').onclick=ctReset;
+ el.querySelector('#ctu').onclick=()=>{const id=ct.id;setCameraDevice(id);camTestClose();render();toast(id?'Kamera uložena':'Nastavena automatická kamera')};
+ document.body.appendChild(el);ctChips();ctStart(ct.id)}
+// ===== Stav úložiště a offline provozu (Nastavení) =====
+async function chkStore(){const e=$('stg');if(!e)return;
+ try{const p=navigator.storage&&navigator.storage.persisted?await navigator.storage.persisted():null;let u='';
+  if(navigator.storage&&navigator.storage.estimate){const q=await navigator.storage.estimate();u=' · využito '+((q.usage||0)/1048576).toFixed(1).replace('.',',')+' MB'}
+  const e2=$('stg');if(!e2)return;
+  e2.innerHTML=(p===true?'Trvalé úložiště: zapnuto':p===false?'Trvalé úložiště: vypnuto, ukládej zálohy':'Trvalé úložiště: nelze zjistit')+esc(u)+(p===false?'<br><button class="btn" style="margin-top:8px" type="button" onclick="askPersist()">Zapnout trvalé úložiště</button>':'')}
+ catch(x){const e3=$('stg');if(e3)e3.textContent='Stav úložiště se nepodařilo zjistit.'}}
+async function askPersist(){try{const ok=await navigator.storage.persist();toast(ok?'Trvalé úložiště zapnuto':'Telefon trvalé úložiště nepovolil')}catch(e){toast('Požadavek se nepodařil')}chkStore()}
+async function chkOffline(){const e=$('ofl');if(!e)return;
+ try{
+  if(!('caches' in window)){e.textContent='Offline provoz: nelze ověřit';return}
+  const need=['xlsx.full.min.js','zxing.min.js','inventura.json','icon.svg'],miss=[];
+  try{if(!(await caches.match(new Request(location.href.split('#')[0]))))miss.push('stránka aplikace')}catch(x){}
+  for(const f of need){try{if(!(await caches.match(f)))miss.push(f)}catch(x){miss.push(f)}}
+  const sw=navigator.serviceWorker&&navigator.serviceWorker.controller,e2=$('ofl');if(!e2)return;
+  e2.textContent='Offline provoz: '+(!sw?'zatím neaktivní':miss.length?'chybí '+miss.join(', '):'v pořádku')}
+ catch(x){const e3=$('ofl');if(e3)e3.textContent='Offline provoz: nelze ověřit'}}
+function showSkipped(){const el=document.createElement('div');el.className='scrim';el.style.alignItems='center';el.style.zIndex=40;
+ el.innerHTML='<div class="sheet" role="dialog" aria-modal="true" style="max-width:480px;width:calc(100% - 32px);border-radius:12px;padding:22px 20px 20px;max-height:85vh;overflow:auto"><h2 style="margin:0 0 10px">Přeskočené řádky ('+SK.length+')</h2><p class="mut sm" style="margin:0 0 12px;line-height:1.45">V těchto řádcích není v sloupci Majetkové číslo číslo o 6 a více číslicích, proto se nedají skenovat ani hledat. Čísla řádků odpovídají řádkům v Excelu.</p>'+SK.slice(0,300).map(s=>'<div style="padding:8px 0;border-top:1px solid var(--line)"><b class="num">řádek '+s.r+'</b> · '+esc(s.id)+(s.p?'<br><span class="mut sm">'+esc(s.p)+'</span>':'')+'</div>').join('')+(SK.length>300?'<p class="mut sm">Zobrazeno prvních 300 řádků.</p>':'')+'<button class="btn pri" type="button" style="margin-top:16px" id="skc">Zavřít</button></div>';
+ el.addEventListener('click',e=>{if(e.target===el||e.target.id==='skc')el.remove()});document.body.appendChild(el)}
+// Jméno se vyžaduje až před prvním zápisem, aby šlo aplikaci otevřít a prohlížet bez překážek
+function needName(cb){const el=document.createElement('div');el.className='scrim';el.style.alignItems='center';el.style.zIndex=60;
+ el.innerHTML='<div class="sheet" role="dialog" aria-modal="true" style="max-width:420px;width:calc(100% - 32px);border-radius:12px;padding:22px 20px 20px"><h2 style="margin:0 0 10px">Zadej své jméno</h2><p class="mut sm" style="margin:0 0 12px;line-height:1.45">Jméno se zapíše ke každému záznamu a do sloupce Inventuru provedl. Podle něj se rozliší zápisy z více telefonů. Později ho změníš na kartě Souhrn.</p><input class="in" id="nmq" placeholder="Tvoje jméno" autocomplete="name" style="margin:0 0 14px"><div class="two" style="gap:10px"><button class="btn" type="button" id="nmc">Zrušit</button><button class="btn pri" type="button" id="nmo">Pokračovat</button></div></div>';
+ const inp=el.querySelector('#nmq'),go=()=>{const n=norm(inp.value);if(!n){inp.focus();return}S.who=n;save();tagAuth();el.remove();cb()};
+ el.querySelector('#nmo').onclick=go;el.querySelector('#nmc').onclick=()=>el.remove();inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+ el.addEventListener('click',e=>{if(e.target===el)el.remove()});document.body.appendChild(el);inp.focus()}
+// Fotky přebytků jako běžné soubory JPG v jednom ZIPu (včetně přehledu v CSV), aby šly otevřít i na počítači
+async function exportPhotos(){
+ const ents=[],rows=[['Soubor','Číslo ze štítku','Popis','Budova','Provedl','Datum']],used=new Set();let n=0;
+ toast('Připravuji ZIP s fotkami…');
+ for(const x of S.x){let i=0;for(const k of photoKeys(x)){let b=null;try{b=await idbGet('ph'+k)}catch(e){}if(!b)continue;i++;
+  let f='Prebytek_'+String(x.n).replace(/[^\p{L}\p{N}]+/gu,'_')+'_'+i+'.jpg';while(used.has(f))f=f.replace(/\.jpg$/,'_'+(++n)+'.jpg');used.add(f);
+  ents.push(xpBin(f,new Uint8Array(await b.arrayBuffer())));rows.push([f,x.n,x.p||'',x.l||'',x.by||'',new Date(x.t||Date.now()).toLocaleDateString('cs-CZ')])}}
+ if(!ents.length){toast('Žádné fotky k uložení');return}
+ ents.push(xpEnt('prehled.csv','\ufeff'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\r\n')));
+ const day=new Date().toISOString().slice(0,10),who=norm(S.who)?norm(S.who).replace(/[^\p{L}\p{N}]+/gu,'_')+'_':'';
+ const where=await saveFile(xpZip(ents,'application/zip'),'Inventura_foto_'+who+day+'.zip');
+ if(where===false){toast('Fotky se nepodařilo uložit');return}
+ toast('Fotky uloženy ('+(ents.length-1)+')'+(typeof where==='string'?': '+where:''))}
+async function torch(){try{tOn=!tOn;await track.applyConstraints({advanced:[{torch:tOn}]})}catch(e){tOn=false;toast('Svítilnu se nepodařilo zapnout')}}
+function pauseCam(){camOff();const cb=$('cam'),cw=$('cw'),st=$('cst'),zm=$('zm'),tb=$('tb');if(cw)cw.style.display='none';if(zm)zm.style.display='none';if(tb)tb.style.display='none';if(cb)cb.style.display='block';if(st)st.textContent='Kamera se po 2 minutách pozastavila, aby šetřila baterii. Klepni na Aktivovat kameru.'}
+function camOff(){camTok++;loopId++;clearTimeout(tm);clearInterval(tm);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;track=null;tOn=false;unwake()}
+async function photo(e){for(const f of e.target.files){try{const b=await createImageBitmap(f),t=await decImg(b);if(t){accept(t);break}else toast('Kód se nepodařilo přečíst.')}catch(x){toast('Foto se nepodařilo zpracovat')}}e.target.value=''}
+
+// Ochrana proti nechtěnému zavření stránky / gestu zpět při rozpracované inventuře
+// Vlastní potvrzovací okno (místo systémového confirm), barvy se řídí zvolenou barvou aplikace
+function askQ(msg,ok,cancel){return new Promise(res=>{const el=document.createElement('div');el.className='scrim';el.style.alignItems='center';el.style.zIndex=40;
+ el.innerHTML='<div class="sheet" role="alertdialog" aria-modal="true" style="max-width:420px;width:calc(100% - 32px);border-radius:12px"><h2></h2><p class="mut"></p><div class="two"><button class="btn" data-r="0"></button><button class="btn pri" data-r="1"></button></div></div>';
+ const b=el.querySelectorAll('button');{const p=String(msg).split('\n\n');el.querySelector('h2').textContent=p[0];const q=el.querySelector('p');if(p.length>1)q.textContent=p.slice(1).join(' ');else q.remove()}b[0].textContent=cancel||'Zrušit';b[1].textContent=ok||'OK';
+ const done=r=>{el.remove();res(r)};b[0].onclick=()=>done(false);b[1].onclick=()=>done(true);el.addEventListener('click',e=>{if(e.target===el)done(false)});
+ document.body.appendChild(el);b[1].focus()})}
+let quitting=false;
+async function quitApp(){
+ const u=D.length?unsaved():0,bk=!!C.bkQuit&&u>0;
+ if(!await askQ('Ukončit aplikaci?'+(bk?'\n\nPřed ukončením se stáhne záloha ('+u+' nezálohovaných položek).':''),'Ukončit','Zrušit'))return;
+ quitting=true;try{camOff()}catch(e){}
+ if(bk){try{await backup(true)}catch(e){}await new Promise(r=>setTimeout(r,900))}
+ save();saveC();
+ try{if(hasNat('closeApp')){Android.closeApp();return}}catch(e){}
+ try{window.close()}catch(e){}
+ setTimeout(()=>{quitting=false;toast(/iphone|ipad|ipod/i.test(navigator.userAgent)?'Aplikaci zavřeš přejetím od spodní hrany displeje nahoru':'Aplikaci zavřeš přepnutím aplikací a odsunutím této karty')},400)}
+// ===== Výběrová pole v nastavení: vlastní seznam s barvou vybrané volby a posunem dlouhého textu =====
+function selText(sel){const o=sel.options[sel.selectedIndex];return o?o.text:''}
+function measureMq(){document.querySelectorAll('#app .cs-tx').forEach(tx=>{const t=tx.parentElement;tx.classList.remove('mq');tx.style.removeProperty('--d');
+ const over=tx.scrollWidth-t.clientWidth;if(over>2){tx.style.setProperty('--d',(-over)+'px');tx.style.animationDuration=Math.max(5,over/20+3)+'s';tx.classList.add('mq')}})}
+window.addEventListener('resize',()=>{if(v.tab==='set')measureMq()});
+function enhSel(){
+ document.querySelectorAll('#app select.in').forEach(sel=>{
+  if(sel.dataset.enh)return;sel.dataset.enh='1';sel.style.display='none';
+  const b=document.createElement('button');b.type='button';b.className='in csel';b.setAttribute('aria-haspopup','listbox');
+  b.innerHTML='<span class="cs-t"><span class="cs-tx"></span></span><span class="cs-ar" aria-hidden="true">▾</span>';
+  const tx=b.querySelector('.cs-tx'),sync=()=>{const t=selText(sel);tx.textContent=t;b.title=t;b.setAttribute('aria-label',(lblOf(sel)?lblOf(sel)+': ':'')+t)};
+  b.sync=sync;sync();b.onclick=()=>openSel(sel,b);sel.after(b)});
+ requestAnimationFrame(measureMq)}
+function lblOf(sel){const l=sel.id?document.querySelector('label[for="'+sel.id+'"]'):null;return l?l.textContent.trim():''}
+function openSel(sel,btn){
+ const el=document.createElement('div');el.className='scrim csp';el.style.alignItems='center';el.style.zIndex=45;
+ const box=document.createElement('div');box.className='sheet';box.setAttribute('role','listbox');
+ const ttl=lblOf(sel);if(ttl){const h=document.createElement('div');h.className='cst';h.textContent=ttl;box.appendChild(h)}
+ let cur=null;
+ [...sel.options].forEach(o=>{const r=document.createElement('button');r.type='button';r.className='copt';r.setAttribute('role','option');
+  const on=o.value===sel.value;r.setAttribute('aria-selected',on?'true':'false');
+  r.innerHTML='<span class="cdot" aria-hidden="true"></span><span></span>';r.lastChild.textContent=o.text;if(on)cur=r;
+  r.onclick=()=>{el.remove();if(o.value!==sel.value){sel.value=o.value;sel.dispatchEvent(new Event('change',{bubbles:true}))}if(btn.sync){btn.sync();measureMq()}};
+  box.appendChild(r)});
+ el.appendChild(box);el.addEventListener('click',e=>{if(e.target===el)el.remove()});
+ el.addEventListener('keydown',e=>{if(e.key==='Escape')el.remove()});
+ document.body.appendChild(el);if(cur){cur.scrollIntoView({block:'center'});cur.focus()}}
+// ===== Tlačítko Zpět vždy vrací o krok a aplikaci nezavře =====
+function backStep(){
+ if(pv){pvClose();return}
+ if(ct){camTestClose();return}
+ if(shoot){shoot.close(null);return}
+ const dlg=document.querySelector('body > .scrim');
+ if(dlg){if(dlg.classList.contains('csp')){dlg.remove();return}const b=dlg.querySelector('button');if(b)b.click();return}
+ if(v.nf){nfCancel();return}
+ if(v.hist||v.it||v.sc||v.rs){closeS();return}
+ if(v.tab==='home'&&v.loc){go(null);return}
+ if(TST.length){const t=TST.pop();NB=true;try{t==='sum'?tabSum():t==='set'?tabSet():tabHome()}finally{NB=false}return}
+ toast('Zpět už není kam. Aplikaci ukončíš tlačítkem vypnutí vpravo dole.')}
+try{history.replaceState({inv:'base'},'');history.pushState({inv:'app'},'')}catch(e){}
+window.addEventListener('popstate',e=>{if(e.state&&e.state.inv==='app')return;backStep();try{history.pushState({inv:'app'},'')}catch(x){}});
+// ===== Přejetí prstem střídá jen záložky Inventura a Souhrn (nekonečná smyčka) =====
+(function(){let sx=0,sy=0,st=0,ok=false;
+ const blocked=el=>{for(let n=el;n&&n!==document.body;n=n.parentElement){const t=n.tagName,c=n.classList;
+  if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||t==='VIDEO'||(c&&(c.contains('cw')||c.contains('rg'))))return true;
+  if(n.scrollWidth>n.clientWidth+4){const o=getComputedStyle(n).overflowX;if(o==='auto'||o==='scroll')return true}}return false};
+ document.addEventListener('touchstart',e=>{ok=false;if(e.touches.length!==1)return;
+  if(v.it||v.sc||v.hist||v.rs||v.nf||(v.tab!=='home'&&v.tab!=='sum')||document.querySelector('body > .scrim'))return;
+  if(blocked(e.target))return;const t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();ok=true},{passive:true});
+ document.addEventListener('touchend',e=>{if(!ok)return;ok=false;const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+  if(Date.now()-st>800||Math.abs(dx)<Math.max(70,innerWidth*.2)||Math.abs(dy)>Math.abs(dx)*.5)return;
+  if(String(getSelection()).length)return;
+  if(v.tab==='home')tabSum();else tabHome()},{passive:true});
+ document.addEventListener('touchcancel',()=>{ok=false},{passive:true})})();
+window.addEventListener('beforeunload', e => {
+ if(quitting)return;
+ if(unsaved() > 0){
+  e.preventDefault();
+  e.returnValue = '';
+ }
+});
+
+tagAuth();render();try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+idbGet('file').then(x=>{if(x&&x.buf&&!D.length)load(x.buf,x.name)});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{});
+</script></body></html>
